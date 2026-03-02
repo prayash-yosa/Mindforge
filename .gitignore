@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Test coverage
+coverage/
+
+# Turborepo
+.turbo/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Android build artifacts
+apps/student/mobile/.gradle/
+apps/student/mobile/app/build/
+apps/student/mobile/build/
+apps/student/mobile/local.properties
+*.apk
+*.aab
+
+# Misc
+*.local

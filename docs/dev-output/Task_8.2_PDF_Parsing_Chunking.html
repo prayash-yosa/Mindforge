@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task 8.2 — PDF Parsing & Chunking</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #333; }
+    h1 { color: #1a1a1a; border-bottom: 2px solid #4a7c59; padding-bottom: 0.5rem; }
+    h2 { color: #4a7c59; margin-top: 2rem; }
+    code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+    pre { background: #f4f4f4; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+    pre code { background: none; padding: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+    th { background: #4a7c59; color: white; }
+    ul { padding-left: 1.5rem; }
+    .meta { color: #666; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <h1>Task 8.2 — PDF Parsing & Chunking</h1>
+  <p class="meta"><strong>Sprint</strong>: 8 — Teacher-Grounded AI Integration | <strong>Status</strong>: Done | <strong>Date</strong>: 2026-02-20</p>
+
+  <h2>Overview</h2>
+  <p>Extracts text from uploaded PDFs using pdf-parse v1, cleans the text (headers, footers, page numbers, whitespace), and splits it into semantic chunks (~500 tokens with ~50 token overlap). Chunks are stored in TeacherMaterialChunkEntity. Processing is async and non-blocking; on parse failure the material status is set to <code>failed</code>.</p>
+
+  <h2>Implementation</h2>
+
+  <h3>PDF Extraction</h3>
+  <ul>
+    <li><strong>Library</strong>: pdf-parse v1</li>
+    <li><strong>Output</strong>: Raw text from all pages concatenated</li>
+  </ul>
+
+  <h3>Text Cleaning</h3>
+  <ul>
+    <li>Remove headers and footers (common patterns)</li>
+    <li>Remove page numbers</li>
+    <li>Normalize whitespace (collapse multiple spaces, trim)</li>
+  </ul>
+
+  <h3>Semantic Chunking</h3>
+  <ul>
+    <li><strong>Target size</strong>: ~500 tokens per chunk</li>
+    <li><strong>Overlap</strong>: ~50 tokens between adjacent chunks</li>
+    <li><strong>Boundary preservation</strong>: Prefer paragraph boundaries; avoid splitting mid-sentence</li>
+  </ul>
+
+  <h3>Entity</h3>
+  <p><strong>TeacherMaterialChunkEntity</strong>: id, material_id (FK), chunk_text, chunk_index, syllabus_ref (class, subject, chapter, topic), created_at</p>
+
+  <h3>Processing Flow</h3>
+  <ul>
+    <li><strong>Async</strong>: Upload returns immediately; processing runs in background</li>
+    <li><strong>On success</strong>: Chunks persisted; material status → <code>ready</code></li>
+    <li><strong>On parse failure</strong>: Material status → <code>failed</code>; no chunks created</li>
+  </ul>
+
+  <h2>Files Created/Modified</h2>
+  <ul>
+    <li><code>teacher-material-chunk.entity.ts</code> — TeacherMaterialChunkEntity</li>
+    <li><code>teacher-content.service.ts</code> — PDF parsing, cleaning, chunking logic</li>
+    <li><code>teacher-content.repository.ts</code> — Chunk persistence</li>
+  </ul>
+
+  <h2>Architecture</h2>
+  <p>Part of the teacher content ingestion pipeline. Runs after file storage (Task 8.1). Produces chunks that EmbeddingService (Task 8.3) consumes. Chunks are the unit of retrieval for the doubt pipeline.</p>
+
+  <h2>Testing</h2>
+  <ol>
+    <li>Upload a valid PDF via Task 8.1 endpoint</li>
+    <li>Poll <code>GET /v1/teacher/materials</code> until status is <code>ready</code> or <code>failed</code></li>
+    <li>Verify chunks exist in DB for <code>ready</code> materials</li>
+    <li>Upload a corrupted or non-PDF file; verify status becomes <code>failed</code></li>
+  </ol>
+</body>
+</html>

@@ -2,8 +2,8 @@
 
 **Artifact name**: Mindforge_Student_Experience_Planner_Backlog  
 **Role**: Planner / Scrum Master AI Agent  
-**Date**: February 6, 2026  
-**Mode**: Enterprise (V2) — production, releases, hardening  
+**Date**: February 20, 2026  
+**Mode**: Enterprise (V3) -- production, releases, hardening, teacher-grounded AI  
 
 **Sources (no scope expansion)**:
 - Architecture: `docs/architecture/final/Mindforge_Student_Experience_Technical_Architecture_Final.md`
@@ -26,7 +26,7 @@
 | **Sprint 5** | Sprint | Attendance & Doubts API |
 | **Sprint 6** | Sprint | Client — Login, Home, Activity, Results |
 | **Sprint 7** | Sprint | Client — Attendance, Doubts, Profile & Sync |
-| **Sprint 8** | Sprint | DevOps, Security Hardening & NotebookLM |
+| **Sprint 8** | Sprint | Teacher-Grounded AI Integration & DevOps |
 
 ---
 
@@ -152,7 +152,7 @@
 - **Risks**: None.
 
 **Checklist**:
-- [ ] Tables: students, syllabus_metadata, teaching_feed, activities, questions, responses, attendance, doubt_threads, sessions, audit_log per architecture §5.1.
+- [ ] Tables: students, syllabus_metadata, activities, questions, responses, attendance, doubt_threads, sessions, audit_log per architecture §5.1. (teacher_materials, teacher_material_chunks, ai_usage_logs added in Sprint 8.)
 - [ ] Indexes on student_id, activity_id, date (attendance), syllabus keys.
 - [ ] Migrations versioned and idempotent; applied via CI/deploy.
 - [ ] No direct DB access from business layer; only via data access layer.
@@ -198,7 +198,7 @@
 
 **Checklist**:
 - [ ] Business services for: auth (MPIN verify, lockout), today's plan, activities, grading, attendance, doubts (stubs OK where not yet implemented).
-- [ ] API layer calls business layer only; business layer calls data access and external (AI, NotebookLM) only.
+- [ ] API layer calls business layer only; business layer calls data access and external (AI provider, embedding model) only.
 - [ ] Domain exceptions (e.g. InvalidMPIN, LockedOut, ActivityNotFound) mapped to API codes/messages; no stack to client.
 
 **Estimate**: 2 SP
@@ -676,118 +676,243 @@
 
 ---
 
-## Sprint 8 — DevOps, Security Hardening & NotebookLM
+## Sprint 8 -- Teacher-Grounded AI Integration & DevOps
 
-**Capacity**: 10 SP · Buffer 20% → 8 SP target
+**Capacity**: 10 SP + overflow from architectural scope. Buffer 20%. Target: 10 SP.
 
----
-
-### Task 8.1 — Deployment pipeline and single-region (India) hosting
-
-**Labels**: Type: Hardening | AI: Non-AI | Risk: Low | Area: DevOps
-
-**Notes**:
-- **As a** team  
-- **I want** CI/CD that builds, tests, and deploys to staging then production in one region (India)  
-- **So that** releases are repeatable and traceable.  
-- **Mode**: V2  
-- **Type**: Hardening  
-- **Dependencies**: App and DB from Sprints 1–5.  
-- **Risks**: None.
-
-**Checklist**:
-- [ ] Build and test on commit; deploy to staging then production; DB migrations versioned and applied in deploy.
-- [ ] API behind HTTPS load balancer; containers (e.g. Docker/K8s or managed runtime); DB managed (e.g. RDS/Cloud SQL); single region (e.g. ap-south-1).
-
-**Estimate**: 2 SP
+**Sprint 8 objective**: Replace NotebookLM integration with Teacher-Grounded AI system. Implement teacher content upload, PDF parsing, chunking pipeline, embedding generation, vector search, AI retrieval orchestration, strict response validation, and supporting DevOps. No frontend tasks.
 
 ---
 
-### Task 8.2 — Secrets vault and no secrets in code/client
+### Task 8.1 -- Teacher upload API and file storage integration
 
-**Labels**: Type: Hardening | AI: Non-AI | Risk: Medium | Area: DevOps / Security
-
-**Notes**:
-- **As a** system  
-- **I want** API keys, DB credentials, and AI keys in a vault (e.g. AWS Secrets Manager / GCP Secret Manager)  
-- **So that** no secrets appear in code or client.  
-- **Mode**: V2  
-- **Type**: Hardening  
-- **Dependencies**: Task 8.1.  
-- **Risks**: Misconfiguration could expose secrets.
-
-**Checklist**:
-- [ ] All secrets in vault; app reads at startup or per-request; no secrets in repo or client config.
-- [ ] DB encryption at rest; access only from backend network.
-
-**Estimate**: 1 SP
-
----
-
-### Task 8.3 — Rate limiting and audit logging
-
-**Labels**: Type: Hardening | AI: Non-AI | Risk: Low | Area: Backend — Security
+**Labels**: Type: Feature | AI: Non-AI | Risk: Medium | Area: Backend -- Activities Module
 
 **Notes**:
-- **As a** system  
-- **I want** rate limiting on auth and critical endpoints and audit log for sensitive operations  
-- **So that** we mitigate brute-force and meet compliance.  
-- **Mode**: V2  
-- **Type**: Hardening  
-- **Dependencies**: Task 1.2, 2.1.  
-- **Risks**: None.
-
-**Checklist**:
-- [ ] Rate limiting on `/auth/mpin/verify` (and lockout); optional Redis or in-memory; 429 when exceeded.
-- [ ] Audit log: failed/success login, lockouts, sensitive data access; no PII in logs; request id for correlation.
-
-**Estimate**: 2 SP
-
----
-
-### Task 8.4 — Monitoring and alerting
-
-**Labels**: Type: Hardening | AI: Non-AI | Risk: Low | Area: DevOps
-
-**Notes**:
-- **As a** team  
-- **I want** health checks, latency and error metrics, and alerting on 5xx and auth failures  
-- **So that** we detect regressions and outages quickly.  
-- **Mode**: V2  
-- **Type**: Hardening  
-- **Dependencies**: Task 8.1.  
-- **Risks**: None.
-
-**Checklist**:
-- [ ] Health check endpoint used by load balancer; latency and error rate metrics; alerts on 5xx spike and auth failure spike.
-- [ ] Logging with request id; no PII in logs.
-
-**Estimate**: 1 SP
-
----
-
-### Task 8.5 — NotebookLM read-only integration (teaching feed)
-
-**Labels**: Type: Feature | AI: Non-AI | Risk: Medium | Area: Backend — Integration
-
-**Notes**:
-- **As a** business layer  
-- **I want** to consume daily teaching feed (per-class summaries) from NotebookLM for homework/quiz generation  
-- **So that** content is aligned to today's class when available.  
-- **Mode**: V2  
+- **As a** teacher  
+- **I want** to upload PDF/notes via an API with file validation  
+- **So that** my study material is securely stored and available for student AI queries.  
+- **Mode**: V3  
 - **Type**: Feature  
-- **Dependencies**: Task 2.2, 2.3; NotebookLM API/schema TBD.  
-- **Risks**: R5 — feed quality; fallback to syllabus-level content; label "today's class" vs "standard syllabus".
+- **Dependencies**: Task 2.1, 2.2, 2.3.  
+- **Risks**: File type abuse; oversized uploads; storage cost.
 
 **Checklist**:
-- [ ] Read-only HTTP integration to NotebookLM (or stub); ingest daily summaries into teaching_feed (or equivalent); business layer uses for generation when available.
-- [ ] Fallback when feed missing; no write to NotebookLM; schema/API deferred to integration phase if needed.
+- [ ] Teacher upload endpoint accepts PDF, DOCX, TXT files with size limit (e.g. 20MB).
+- [ ] File type validation (MIME + extension); reject disallowed types with 400.
+- [ ] File stored in cloud object storage (S3/GCS) with server-side encryption; `storage_path` recorded.
+- [ ] `teacher_materials` table: id, teacher_id, class, subject, file_name, file_type, storage_path, status (processing/ready/failed), uploaded_at.
+- [ ] `teacher-content.repository` created: CRUD for teacher_materials; query by teacher_id, class, subject, status.
+- [ ] `teacher-content.service` created: handles upload, validation, storage, status lifecycle.
+- [ ] Access control: only authenticated teacher role can upload; material associated with teacher_id and class.
+- [ ] Audit log entry for each upload.
 
 **Estimate**: 2 SP
 
 ---
 
-**Sprint 8 total**: 8 SP
+### Task 8.2 -- PDF parsing and chunking pipeline
+
+**Labels**: Type: Feature | AI: AI | Risk: Medium | Area: Backend -- Activities Module
+
+**Notes**:
+- **As a** system  
+- **I want** to parse uploaded PDFs/docs into text and split into semantic chunks  
+- **So that** content is ready for embedding and retrieval.  
+- **Mode**: V3  
+- **Type**: Feature  
+- **Dependencies**: Task 8.1.  
+- **Risks**: R5 -- poor quality parsing; variable PDF formats.
+
+**Checklist**:
+- [ ] PDF text extraction (e.g. pdf-parse or equivalent); DOCX/TXT extraction.
+- [ ] Text cleaning: remove headers/footers/page numbers, normalize whitespace.
+- [ ] Chunking: split into segments of ~500 tokens with ~50 token overlap; preserve paragraph boundaries where possible.
+- [ ] Each chunk tagged with material_id, chunk_index, and syllabus_ref (class, subject, chapter, topic derived from material metadata).
+- [ ] `teacher_material_chunks` table: id, material_id (FK), chunk_text, chunk_index, embedding_vector (pgvector), syllabus_class, syllabus_subject, syllabus_chapter, syllabus_topic, created_at.
+- [ ] Processing runs as async job/worker (not blocking upload request).
+- [ ] On parse failure: mark teacher_materials status=failed; log error; allow teacher retry.
+
+**Estimate**: 2 SP
+
+---
+
+### Task 8.3 -- Embedding generation and vector storage
+
+**Labels**: Type: Feature | AI: AI | Risk: Medium | Area: Backend -- Activities Module
+
+**Notes**:
+- **As a** system  
+- **I want** to generate vector embeddings for each chunk and store in pgvector  
+- **So that** semantic similarity search is possible at query time.  
+- **Mode**: V3  
+- **Type**: Feature  
+- **Dependencies**: Task 8.2.  
+- **Risks**: Embedding API cost; latency for large documents.
+
+**Checklist**:
+- [ ] Call embedding model API (e.g. OpenAI embeddings or equivalent) for each chunk.
+- [ ] Store embedding_vector in teacher_material_chunks using pgvector column type.
+- [ ] pgvector extension enabled on PostgreSQL; HNSW or IVFFlat index on embedding_vector for fast similarity search.
+- [ ] `embeddings.repository` created: insert chunks with embeddings; vector similarity search (cosine distance) scoped by class/subject/chapter; return top-K results with scores.
+- [ ] Batch processing: embed multiple chunks per API call where supported; handle rate limits and retries.
+- [ ] On embedding failure: mark material status=failed; allow retry.
+- [ ] Update teacher_materials status to ready after all chunks embedded.
+
+**Estimate**: 2 SP
+
+---
+
+### Task 8.4 -- Retrieval service (vector search integration)
+
+**Labels**: Type: Feature | AI: AI | Risk: Medium | Area: Backend -- Activities Module
+
+**Notes**:
+- **As a** activities service  
+- **I want** to search teacher material by semantic similarity when a student asks a question  
+- **So that** only relevant teacher content is retrieved for AI context.  
+- **Mode**: V3  
+- **Type**: Feature  
+- **Dependencies**: Task 8.3.  
+- **Risks**: R1 -- low retrieval quality; R9 -- cross-class access.
+
+**Checklist**:
+- [ ] `retrieval.service` created: accepts student question + syllabus context (class, subject, chapter, topic) + student_id.
+- [ ] Embeds student question using same embedding model.
+- [ ] Performs vector similarity search on teacher_material_chunks via embeddings.repository; scoped by class and teacher(s) assigned to student.
+- [ ] Returns top-K chunks (configurable, e.g. K=5) with similarity scores.
+- [ ] Confidence threshold: if best match score is below configurable threshold (e.g. 0.7 cosine similarity), returns empty result (triggers "Not found in provided material." downstream).
+- [ ] Access control enforced: student can only search material from their assigned class teacher(s); no cross-class access.
+
+**Estimate**: 1 SP
+
+---
+
+### Task 8.5 -- AI retrieval orchestration service
+
+**Labels**: Type: Feature | AI: AI | Risk: Medium | Area: Backend -- Activities Module
+
+**Notes**:
+- **As a** activities service  
+- **I want** to build retrieval-augmented prompts and call the AI provider with strict grounding rules  
+- **So that** AI responses are based solely on teacher material.  
+- **Mode**: V3  
+- **Type**: Feature  
+- **Dependencies**: Task 4.1, 8.4.  
+- **Risks**: R1 -- hallucination; R2 -- over-helping.
+
+**Checklist**:
+- [ ] `ai-orchestrator.service` created: accepts retrieved chunks + student question + syllabus context.
+- [ ] Builds prompt with: (a) system prompt enforcing retrieval-only answering, (b) retrieved chunks with chunk IDs, (c) student question.
+- [ ] System prompt includes: "Answer ONLY from the provided context. Do not use your training data. If the answer is not in the provided context, respond exactly: Not found in provided material. Cite sources using [chunk:{id}] format."
+- [ ] Temperature set to 0.1-0.2; max tokens capped.
+- [ ] Calls existing AiProviderService (from Task 4.1) with constructed prompt.
+- [ ] On AI timeout or error: return "Not found in provided material." (fail closed).
+- [ ] Token usage logged via ai-usage.repository.
+
+**Estimate**: 1 SP
+
+---
+
+### Task 8.6 -- Strict response validator service
+
+**Labels**: Type: Feature | AI: AI | Risk: Low | Area: Backend -- Activities Module
+
+**Notes**:
+- **As a** system  
+- **I want** to validate every AI response for citations and on-topic alignment before returning to student  
+- **So that** no ungrounded or hallucinated answers reach the student.  
+- **Mode**: V3  
+- **Type**: Feature  
+- **Dependencies**: Task 8.5.  
+- **Risks**: R1 -- hallucination leak if validator is bypassed.
+
+**Checklist**:
+- [ ] `response-validator.service` created: accepts AI response text + list of available chunk IDs.
+- [ ] Parses response for [chunk:{id}] citations; validates cited IDs exist in retrieved set.
+- [ ] If no valid citation found: reject response; return "Not found in provided material."
+- [ ] If response contains content not attributable to cited chunks (heuristic check): flag and reject.
+- [ ] Validated response includes: answer text, cited_chunk_ids array, confidence indicator.
+- [ ] Rejection events logged in ai_usage_logs with reason.
+
+**Estimate**: 1 SP
+
+---
+
+### Task 8.7 -- AI usage logging and monitoring
+
+**Labels**: Type: Feature | AI: Non-AI | Risk: Low | Area: Backend -- Activities Module / DevOps
+
+**Notes**:
+- **As a** system  
+- **I want** to log all AI usage (tokens, latency, retrieval stats) and monitor for cost and quality  
+- **So that** we can track AI costs and detect quality drift.  
+- **Mode**: V3  
+- **Type**: Feature  
+- **Dependencies**: Task 8.5, 8.6, 2.1.  
+- **Risks**: None.
+
+**Checklist**:
+- [ ] `ai_usage_logs` table: id, student_id, feature_type (homework_gen/quiz_gen/doubt/feedback/grading), model_used, tokens_used (prompt + completion), latency_ms, retrieval_chunk_count, retrieval_top_score, response_status (accepted/rejected), timestamp.
+- [ ] `ai-usage.repository` created: insert logs; aggregation queries (tokens per day, per student, per feature; rejection rate).
+- [ ] All AI calls (orchestrator, grading, feedback) log to ai_usage_logs via repository.
+- [ ] Monitoring alerts: daily token usage threshold; high rejection rate alert; latency spike alert.
+
+**Estimate**: 1 SP
+
+---
+
+### Task 8.8 -- Security: file validation, access control, and audit
+
+**Labels**: Type: Hardening | AI: Non-AI | Risk: Medium | Area: Backend -- Security
+
+**Notes**:
+- **As a** system  
+- **I want** strict file validation for teacher uploads, access control for material retrieval, and audit logging  
+- **So that** the system is secure against malicious uploads and unauthorized data access.  
+- **Mode**: V3  
+- **Type**: Hardening  
+- **Dependencies**: Task 8.1, 8.4.  
+- **Risks**: Malicious file upload; cross-class data leakage.
+
+**Checklist**:
+- [ ] File validation: MIME type check, file extension whitelist (pdf, docx, txt), file size limit, basic malware scan (ClamAV or equivalent).
+- [ ] Access control: teacher can only upload for their assigned classes; student retrieval scoped by class/teacher association enforced at repository level.
+- [ ] No student endpoint exposes raw teacher material; material accessed only through AI-mediated responses.
+- [ ] Audit log: upload events, retrieval events, rejected AI responses.
+- [ ] Rate limiting on upload endpoint.
+
+**Estimate**: 1 SP
+
+---
+
+### Task 8.9 -- DevOps: storage bucket, embedding worker, deployment, monitoring
+
+**Labels**: Type: Hardening | AI: Non-AI | Risk: Low | Area: DevOps
+
+**Notes**:
+- **As a** team  
+- **I want** cloud storage for teacher files, an async embedding worker, CI/CD, and monitoring  
+- **So that** the teacher-grounded AI pipeline runs reliably in production.  
+- **Mode**: V3  
+- **Type**: Hardening  
+- **Dependencies**: Task 8.1, 8.2, 8.3.  
+- **Risks**: None.
+
+**Checklist**:
+- [ ] Cloud storage bucket (S3/GCS) provisioned in India region; server-side encryption; access policy (backend-only).
+- [ ] Embedding worker: async job runner (queue-based or cron) for processing new teacher uploads (parse -> chunk -> embed). Retry on failure.
+- [ ] CI/CD pipeline: build and test on commit; deploy to staging then production; DB migrations (including pgvector extension and new tables) versioned and applied in deploy.
+- [ ] API behind HTTPS load balancer; containers; DB managed with pgvector enabled.
+- [ ] Secrets vault: AI API key, embedding API key, storage credentials in vault; no secrets in code.
+- [ ] Monitoring: health checks; latency/error metrics; AI usage dashboard (tokens, retrieval hit rate, rejection rate); alert on 5xx, auth failures, high AI cost.
+- [ ] `teaching_feed` table migration: drop table (replaced by teacher_materials + teacher_material_chunks).
+
+**Estimate**: 2 SP
+
+---
+
+**Sprint 8 total**: 13 SP (overflows standard 10 SP capacity; recommend splitting into Sprint 8a and 8b if single-engineer constraint applies, or allocating 2 sprints)
 
 ---
 
@@ -795,14 +920,15 @@
 
 | ID | Risk | Mitigation | Owner |
 |----|------|------------|--------|
-| R1 | AI hallucination / off-syllabus | Ground prompts in syllabus + NotebookLM; validation layer; flag uncertainty in UI | Backend + Frontend |
+| R1 | AI hallucination / off-topic | Retrieval-only prompting; citation-required validation; fail closed; "Not found in provided material." | Backend |
 | R2 | Over-helping | Enforce guidance levels in business layer; full solution gated; UX shows level | Backend + Frontend |
 | R3 | Grading fairness | Deterministic scoring for objective; rubric storage; clear explanations | Backend |
 | R4 | Data privacy (minors) | Minimize PII to AI; consent; encryption; deletion path | Backend + DevOps |
-| R5 | NotebookLM feed quality | Fallback to syllabus-level; label source | Backend |
+| R5 | Teacher material quality / coverage | "Not found" by design; coverage metrics for teachers; no fabrication | Backend |
 | R6 | Connectivity / latency | Cache, retry, offline/sync states in UI | Backend + Frontend |
 | R7 | MPIN brute-force | Rate limiting, lockout, audit failed attempts | Backend |
 | R8 | Attendance accuracy | Read-only for student; label period/source | Backend |
+| R9 | Teacher material access control | Retrieval scoped by class/teacher; enforced at repository layer | Backend |
 
 ---
 
@@ -815,54 +941,96 @@
 | 3 | Today's Plan & Activities | 8 | 90% |
 | 4 | AI Integration | 8 | 75% (AI probabilistic) |
 | 5 | Attendance & Doubts API | 7 | 85% |
-| 6 | Client — Login, Home, Activity, Results | 10 | 85% |
-| 7 | Client — Attendance, Doubts, Profile | 8 | 85% |
-| 8 | DevOps, Security, NotebookLM | 8 | 80% |
+| 6 | Client -- Login, Home, Activity, Results | 10 | 85% |
+| 7 | Client -- Attendance, Doubts, Profile | 8 | 85% |
+| 8 | Teacher-Grounded AI Integration & DevOps | 13 | 70% (AI + infra; recommend split) |
 
-**Total**: ~65 SP over 8 sprints. **No scope expansion**; all items trace to Architecture + UX only.
+**Total**: ~70 SP over 8 sprints. Sprint 8 expanded to accommodate teacher-grounded AI pipeline (replacing NotebookLM). No frontend scope expansion; all backend/infra. **No UI, navigation, or API contract changes.**
 
 ---
 
-## STANDARD HANDOFF – To Dev Agent
+## New Services and Repositories (v3)
+
+### New Services (inside /modules/activities)
+
+| Service | File | Responsibility |
+|---------|------|---------------|
+| **TeacherContentService** | teacher-content.service.ts | Teacher material upload, file validation, PDF parsing, text chunking, embedding generation orchestration, material status lifecycle. |
+| **RetrievalService** | retrieval.service.ts | Vector similarity search over teacher_material_chunks scoped by class/subject/chapter. Returns top-K chunks with confidence scores. Enforces access control. |
+| **AiOrchestratorService** | ai-orchestrator.service.ts | Builds retrieval-augmented prompts (system prompt + retrieved chunks + student question). Calls AI provider. Enforces strict retrieval-only rules. |
+| **ResponseValidatorService** | response-validator.service.ts | Validates AI responses for chunk citations, on-topic alignment. Rejects ungrounded responses. Returns "Not found in provided material." on failure. |
+
+### New Repositories (inside /modules/activities)
+
+| Repository | File | Responsibility |
+|------------|------|---------------|
+| **TeacherContentRepository** | teacher-content.repository.ts | CRUD for teacher_materials table. Query by teacher_id, class, subject, status. |
+| **EmbeddingsRepository** | embeddings.repository.ts | CRUD for teacher_material_chunks. Vector similarity search (pgvector cosine distance). Query by material_id, syllabus_ref. Scoped by class/teacher. |
+| **AiUsageRepository** | ai-usage.repository.ts | Insert and query ai_usage_logs. Aggregations for monitoring. |
+
+### New DB Tables
+
+| Table | Key Columns |
+|-------|-------------|
+| **teacher_materials** | id, teacher_id, class, subject, file_name, file_type, storage_path, status, uploaded_at |
+| **teacher_material_chunks** | id, material_id (FK), chunk_text, chunk_index, embedding_vector (pgvector), syllabus_class, syllabus_subject, syllabus_chapter, syllabus_topic, created_at |
+| **ai_usage_logs** | id, student_id, feature_type, model_used, tokens_used, latency_ms, retrieval_chunk_count, retrieval_top_score, response_status, timestamp |
+
+### Removed
+
+| Item | Reason |
+|------|--------|
+| **teaching_feed** table | Replaced by teacher_materials + teacher_material_chunks. NotebookLM dependency removed. |
+| **TeachingFeedRepository** | No longer needed. |
+
+---
+
+## STANDARD HANDOFF -- To Dev Agent
 
 ```
 ============================================
-HANDOFF: Planner / Scrum Master AI Agent → Dev Agent
+HANDOFF: Planner / Scrum Master AI Agent -> Dev Agent
 ============================================
 
 PROJECT: Mindforge Student Experience
 
 ARTIFACT SOURCE: docs/planning/Mindforge_Student_Experience_Planner_Backlog.md
 
-PLANNING STATUS: Backlog and sprints defined; no architecture or UX changes.
+PLANNING STATUS: Backlog and sprints defined (v3); Sprint 8 updated for Teacher-Grounded AI Integration.
 
 WHAT THE DEV RECEIVES:
-- Plan: Mindforge Student Experience — Release 1
-- Buckets: Sprints 1–8 (Foundation & Auth → Data Core → Today's Plan & Activities → AI Integration → Attendance & Doubts API → Client Login/Home/Activity/Results → Client Attendance/Doubts/Profile → DevOps & NotebookLM)
-- Tasks: Each task has Title, User story (As/I want/So that), Acceptance criteria (Checklist), Dependencies, Risks, Labels (Type | AI/Non-AI | Risk | Area)
-- Notes: Full details in each task's Notes block
-- Capacity: 1 engineer = 8–10 SP/sprint; 20% buffer; AI work treated as probabilistic (confidence % in forecast)
-- Risk register: R1–R8 with mitigations and owner area
+- Plan: Mindforge Student Experience -- Release 1
+- Buckets: Sprints 1-8 (Foundation & Auth -> Data Core -> Today's Plan & Activities -> AI Integration -> Attendance & Doubts API -> Client Login/Home/Activity/Results -> Client Attendance/Doubts/Profile -> Teacher-Grounded AI Integration & DevOps)
+- Sprint 8 NEW tasks: Teacher upload API, PDF parsing, chunking, embedding generation, vector search, AI orchestration, response validation, AI usage logging, security hardening, DevOps (storage, worker, deployment, monitoring)
+- Tasks: Each task has Title, User story, Acceptance criteria (Checklist), Dependencies, Risks, Labels
+- New services: teacher-content.service, retrieval.service, ai-orchestrator.service, response-validator.service
+- New repositories: teacher-content.repository, embeddings.repository, ai-usage.repository
+- New tables: teacher_materials, teacher_material_chunks, ai_usage_logs
+- Removed: teaching_feed table, NotebookLM integration
+- Risk register: R1-R9 with mitigations and owner area
 
 CONSTRAINTS (DO NOT BREAK):
-- UX is locked (docs/Mindforge_Student_Experience_UX_Design_Specification.md). No screen, flow, or feature changes.
-- Architecture is locked (docs/architecture/final/Mindforge_Student_Experience_Technical_Architecture_Final.md). Implement as specified; no new endpoints or layers.
-- No scope expansion; only implement approved design.
+- UX is locked. No screen, flow, or feature changes.
+- Architecture v3 is locked (teacher-grounded AI). Implement as specified.
+- Modular rules: Controllers = HTTP only, Services = business logic only, Repositories = DB only. No cross-module DB access.
+- Security baseline preserved. Teacher material access control enforced.
+- API contracts unchanged. No new student-facing endpoints.
+- AI must fail closed: "Not found in provided material." on any retrieval or validation failure.
 
 DEV NEXT STEPS:
-1. Implement in sprint order (Sprint 1 → 2 → … → 8) or as directed by PM; respect dependencies in task Notes.
-2. Use Checklist per task as acceptance criteria; satisfy all items before marking done.
-3. Surface AI uncertainty (timeouts, fallbacks) in UI and logs; use confidence/labels where applicable.
-4. Run tests and migrations per CI/CD; adhere to coding standards and security (secrets, rate limit, audit).
+1. Implement in sprint order; Sprint 8 tasks replace previous 8.1-8.5.
+2. Use Checklist per task as acceptance criteria.
+3. Enforce strict AI governance: retrieval-only prompting, citation validation, fail closed.
+4. Run tests and migrations per CI/CD; include pgvector extension setup.
 
 BLOCKERS: None.
 
 DEPENDENCIES:
-- Reads: docs/architecture/final/Mindforge_Student_Experience_Technical_Architecture_Final.md
+- Reads: docs/architecture/final/Mindforge_Student_Experience_Technical_Architecture_Final.md (v3)
 - Reads: docs/Mindforge_Student_Experience_UX_Design_Specification.md
-- Reads: docs/Mindforge_Student_Experience_Light_Architecture_v2.md (constraints)
+- Reads: docs/Mindforge_Student_Experience_Light_Architecture_v2.md (v3)
 
 ============================================
-Signature: Planner / Scrum Master AI Agent – Mindforge Student Experience
+Signature: Planner / Scrum Master AI Agent (v3) -- Mindforge Student Experience
 ============================================
 ```

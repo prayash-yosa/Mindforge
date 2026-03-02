@@ -2,13 +2,15 @@
 
 **Artifact name**: Mindforge_Student_Experience_UX_Design_Specification  
 **Artifact produced by**: UX/UI Designer AI Agent  
-**Date**: February 4, 2026  
-**Constraints Reference**: `docs/Mindforge_Student_Experience_Light_Architecture_v2.md`
+**Date**: February 4, 2026 (Updated: February 20, 2026 -- Grounded AI Model, No Visual Changes)  
+**Constraints Reference**: `docs/Mindforge_Student_Experience_Light_Architecture_v2.md` (v3 -- Teacher-Grounded Closed AI)
 
 **Color scheme**: Use `docs/images/color-palate.png`: primary **#748b75** (sage green), text/emphasis **#503d42** (deep brown), background **#f5fbef** (cream).  
 **Logo**: Use `docs/images/logo.png` (transparent background) for branding on Login and headers.
 
 Attendance with calendar integration is in scope: students see how many days they are present and absent via an integrated calendar view (see Screen 5 and Attendance & Calendar navigation below).
+
+**AI Knowledge Source (v3 update -- no visual changes)**: All AI responses (homework, quizzes, doubt-solving, gap-bridge) are powered by **teacher-provided study material** (PDFs, notes uploaded by the class teacher). The AI does not use external knowledge or general internet answers. If the AI cannot find an answer in the teacher-provided material, it responds: **"Not found in provided material."** This is expected behavior and not an error state. No screens, buttons, flows, or navigation have changed.
 
 ---
 
@@ -532,10 +534,11 @@ NAVIGATION RULES:
 | **Offline** | Answer saved locally, feedback deferred |
 
 **AI Behavior:**
-- **Role**: Progressive guidance, never direct answers
+- **Role**: Progressive guidance, never direct answers; AI powered by teacher-provided study material
 - **User control**: Student chooses when to request more help
-- **Guidance levels**: Hint (1) → Approach (2) → Concept (3) → Worked Solution (4)
+- **Guidance levels**: Hint (1) -> Approach (2) -> Concept (3) -> Worked Solution (4)
 - **Confidence indicator**: "Help level: X/4" shows guidance depth
+- **Grounded responses**: All AI feedback is derived from teacher-uploaded material for the relevant syllabus context. If no relevant material is available, the AI responds: "Not found in provided material."
 
 ---
 
@@ -740,7 +743,7 @@ NAVIGATION RULES:
 
 **Interaction Notes:**
 - Syllabus (Class → Subject → Chapter → Topic) is **only** in this screen (and in any activity that needs topic context); there is no separate "Syllabus" tab in bottom nav.
-- AI behavior: same progressive guidance as in Activity screen; no direct answers by default.
+- AI behavior: same progressive guidance as in Activity screen; no direct answers by default. AI responses are grounded in teacher-provided study material. If no relevant material exists for the selected topic, the AI responds: "Not found in provided material."
 - Changing context does not clear the thread; optionally show a short message: "Context changed to [Topic]. Next answers will follow this topic."
 
 ---
@@ -880,6 +883,8 @@ NAVIGATION RULES:
 | AI error response | "Couldn't get feedback. Try again?" |
 | AI returns off-topic | Filter response, show generic hint |
 | Network unavailable | Use cached hints if available |
+| No relevant teacher material found | "Not found in provided material." (this is expected behavior, not an error) |
+| AI response lacks source citation | "Not found in provided material." (response rejected by system) |
 
 ---
 
@@ -912,12 +917,18 @@ KEY UX DECISIONS:
 7. **Attendance with calendar integration**: read-only view of days present/absent, entry from Home or Profile; calendar shows per-day present/absent; summary (e.g. X days present, Y days absent) for selected period
 
 CONSTRAINTS HONORED:
-- Learning-first AI (Hints → Approaches → Concepts → Solutions)
+- Learning-first AI (Hints -> Approaches -> Concepts -> Solutions)
+- AI powered by teacher-provided study material (grounded responses; "Not found in provided material." when content unavailable)
 - Multi-platform parity (Android, iOS, Desktop)
 - Low-bandwidth optimization (skeleton loaders, minimal assets)
 - Privacy-conscious (MPIN-only, no unnecessary PII in prompts)
 - Accessibility as mandatory baseline
-- **Attendance & calendar**: present/absent days surfaced via calendar integration per Light Architecture v2
+- **Attendance & calendar**: present/absent days surfaced via calendar integration per Light Architecture v3
+
+UX SPEC UPDATED -- GROUNDED AI MODEL (NO VISUAL CHANGES):
+- AI responses are now documented as grounded in teacher-provided study material
+- "Not found in provided material." is a valid AI response (not an error)
+- No screens, buttons, flows, or navigation changed
 
 PENDING CUSTOMER DECISIONS:
 1. Branding: Logo, color palette, typography

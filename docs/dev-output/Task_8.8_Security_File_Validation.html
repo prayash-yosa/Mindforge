@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task 8.8 — Security &amp; File Validation</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #333; }
+    h1 { color: #1a1a1a; border-bottom: 2px solid #4a7c59; padding-bottom: 0.5rem; }
+    h2 { color: #4a7c59; margin-top: 2rem; }
+    code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+    pre { background: #f4f4f4; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+    pre code { background: none; padding: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+    th { background: #4a7c59; color: white; }
+    ul { padding-left: 1.5rem; }
+    .meta { color: #666; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <h1>Task 8.8 — Security &amp; File Validation</h1>
+  <p class="meta"><strong>Sprint</strong>: 8 — Teacher-Grounded AI Integration | <strong>Status</strong>: Done | <strong>Date</strong>: 2026-02-20</p>
+
+  <h2>Overview</h2>
+  <p>Consolidates security controls for the teacher-grounded AI pipeline: file validation (MIME + extension whitelist, 20MB limit), X-Teacher-Id header for teacher access control, student retrieval scoped by class at repository level, no raw teacher material exposed to students, audit logging for upload/retry, rate limiting via ThrottlerGuard, and multipart/form-data allowed in JsonOnlyMiddleware.</p>
+
+  <h2>Implementation</h2>
+
+  <h3>File Validation</h3>
+  <ul>
+    <li><strong>MIME type whitelist</strong>: application/pdf, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/plain</li>
+    <li><strong>Extension whitelist</strong>: .pdf, .docx, .txt</li>
+    <li><strong>Size limit</strong>: 20MB max</li>
+    <li><strong>Dual check</strong>: Both MIME and extension must match; reject if either fails</li>
+  </ul>
+
+  <h3>Access Control</h3>
+  <ul>
+    <li><strong>X-Teacher-Id header</strong>: Required for teacher endpoints; identity used for upload ownership and audit</li>
+    <li><strong>Student retrieval</strong>: Scoped by class at repository level; students only access chunks from materials for their class</li>
+    <li><strong>No raw material</strong>: Students never receive raw teacher files; only chunk text via AI response</li>
+  </ul>
+
+  <h3>Audit Logging</h3>
+  <p>Upload events: teacher_id, material_id, file_name, timestamp. Retry events: teacher_id, material_id, timestamp.</p>
+
+  <h3>Rate Limiting</h3>
+  <p><strong>ThrottlerGuard</strong>: Global rate limiting applied. Protects against abuse of upload and API endpoints.</p>
+
+  <h3>Middleware</h3>
+  <p><strong>JsonOnlyMiddleware</strong>: Allows multipart/form-data for upload routes; other routes remain JSON-only.</p>
+
+  <h2>Files Created/Modified</h2>
+  <ul>
+    <li><code>teacher-content.controller.ts</code> — File validation, X-Teacher-Id guard</li>
+    <li><code>dto/teacher-upload.dto.ts</code> — File validation constraints</li>
+    <li><code>embeddings.repository.ts</code> — Class-scoped retrieval</li>
+    <li><code>json-only.middleware.ts</code> — Multipart exception</li>
+    <li><code>main.ts</code> or app config — ThrottlerGuard registration</li>
+  </ul>
+
+  <h2>Architecture</h2>
+  <p>Implements security-by-design per Architecture §2 (Security-by-Design mode). Teacher material is intellectual property; access control enforced per class. File validation prevents malicious uploads. Audit log supports compliance.</p>
+
+  <h2>Testing</h2>
+  <ol>
+    <li>Upload with invalid MIME (e.g. rename .exe to .pdf) → reject</li>
+    <li>Upload with invalid extension → reject</li>
+    <li>Upload &gt; 20MB → reject</li>
+    <li>Request without X-Teacher-Id → 401/403</li>
+    <li>Student doubt: verify retrieval only returns chunks from student's class</li>
+    <li>Verify audit log entries for upload and retry</li>
+  </ol>
+</body>
+</html>

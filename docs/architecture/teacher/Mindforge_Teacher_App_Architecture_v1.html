@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mindforge Teacher App – Architecture (v1)</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+      margin: 2rem auto;
+      padding: 0 1.5rem 3rem;
+      max-width: 960px;
+      color: #111827;
+      background: #f9fafb;
+    }
+    h1, h2, h3, h4 {
+      color: #111827;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    h2 {
+      font-size: 1.5rem;
+      margin-top: 2rem;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 0.25rem;
+    }
+    h3 {
+      font-size: 1.15rem;
+      margin-top: 1.25rem;
+    }
+    p {
+      margin: 0.4rem 0;
+    }
+    ul {
+      padding-left: 1.5rem;
+    }
+    li {
+      margin: 0.25rem 0;
+    }
+    strong {
+      font-weight: 600;
+    }
+    .meta {
+      font-size: 0.9rem;
+      color: #4b5563;
+      margin-bottom: 1rem;
+    }
+    .note {
+      font-size: 0.9rem;
+      color: #374151;
+      padding: 0.75rem 1rem;
+      background: #e5e7eb;
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.9em;
+      background: #e5e7eb;
+      padding: 0.05rem 0.25rem;
+      border-radius: 0.25rem;
+    }
+    pre {
+      background: #111827;
+      color: #e5e7eb;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+      font-size: 0.85rem;
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid #e5e7eb;
+      margin: 1.5rem 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.75rem 0;
+      font-size: 0.9rem;
+    }
+    th, td {
+      border: 1px solid #e5e7eb;
+      padding: 0.4rem 0.5rem;
+      text-align: left;
+    }
+    th {
+      background: #f3f4f6;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Mindforge Teacher App – Architecture (v1)</h1>
+    <p class="meta">
+      <strong>Artifact name:</strong> Mindforge_Teacher_App_Architecture_v1<br />
+      <strong>Suggested file path:</strong> <code>docs/architecture/teacher/Mindforge_Teacher_App_Architecture_v1.md</code>
+    </p>
+    <p class="meta">
+      <strong>Related artifacts:</strong><br />
+      • Student Light Architecture: <code>docs/architecture/light/Mindforge_Student_Experience_Light_Architecture_v2.md</code><br />
+      • Workspace Architecture: <code>docs/architecture/workspace-architecture.md</code><br />
+      • Teacher Requirements: <code>docs/Requirements/Teacher_App_Product_Requirements_Final.md</code>
+    </p>
+    <div class="note">
+      Scope: Architecture for the <strong>Teacher application</strong> (frontend + backend) within the existing Mindforge monorepo. The Student app is already implemented; this document defines the teacher-facing capabilities and the backend changes needed to support teacher requirements, without redesigning the student app UX.
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <h2>1. Goals &amp; Non‑Goals</h2>
+
+      <h3>1.1 Goals</h3>
+      <ul>
+        <li>Provide a dedicated <strong>Teacher app</strong> (frontend + backend) that supports:
+          <ul>
+            <li><strong>Class &amp; attendance management</strong> per session (1‑hour class, default Present, mark Absentees).</li>
+            <li><strong>Attendance analytics</strong> (daily/weekly/monthly, % and trends) shared with Student/Parent/Admin where appropriate.</li>
+            <li><strong>Syllabus upload</strong> (PDF/Image) with AI processing into structured learning units.</li>
+            <li><strong>Test system</strong>:
+              <ul>
+                <li>Online daily quiz (objective only, <strong>no numericals</strong>).</li>
+                <li>Offline (printable PDF) tests with MCQ to long/numerical questions.</li>
+              </ul>
+            </li>
+            <li><strong>Evaluation &amp; analytics</strong>:
+              <ul>
+                <li>Auto‑graded online tests.</li>
+                <li>Teacher-entered offline marks.</li>
+                <li>Performance and attendance dashboards.</li>
+              </ul>
+            </li>
+            <li><strong>Alerts &amp; notifications</strong>:
+              <ul>
+                <li>Absence &gt;2 days/week.</li>
+                <li>Missed online test deadlines.</li>
+                <li>Auto‑submitted tests due to timer.</li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li>Integrate teacher capabilities <strong>cleanly</strong> into the existing workspace:
+          <ul>
+            <li>Dedicated <code>apps/teacher/frontend</code> &amp; <code>apps/teacher/backend</code>.</li>
+            <li>All traffic via the <strong>API Gateway</strong>.</li>
+            <li>Use <code>@mindforge/shared</code> for shared types/contracts.</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h3>1.2 Non‑Goals (v1)</h3>
+      <ul>
+        <li>No major redesign of the Student app UX; Student remains a <strong>consumer</strong> of:
+          <ul>
+            <li>Attendance aggregates.</li>
+            <li>Tests and results created by the Teacher app.</li>
+          </ul>
+        </li>
+        <li>No direct integration with school ERPs, SMS gateways, or payment systems in this phase.</li>
+        <li>No full teacher‑facing grading automation for <strong>offline descriptive answers</strong> beyond marks entry and storage (AI assists with model answers, but teacher remains final authority).</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>2. Placement in Workspace Architecture</h2>
+      <p>The Teacher app fits into the existing monorepo as defined in <code>workspace-architecture.md</code>:</p>
+      <pre><code>Mindforge/
+├── apps/
+│   ├── teacher/
+│   │   ├── frontend/   # React 19 + Vite — Teacher UI (:5175)
+│   │   └── backend/    # NestJS — Teacher microservice (:3003)
+├── services/
+│   └── gateway/        # API Gateway (NestJS) — role-based routing
+├── shared/             # @mindforge/shared
+└── docs/</code></pre>
+
+      <p><strong>Key rules</strong>:</p>
+      <ul>
+        <li>Teacher frontend → <strong>Gateway</strong> → Teacher backend.</li>
+        <li>Teacher backend:
+          <ul>
+            <li>Owns <strong>teacher‑facing domain</strong>: class sessions, attendance mark entry, syllabus uploads, test definitions (online &amp; offline), evaluation, teacher dashboards.</li>
+            <li>Exposes APIs that Student/Parent/Admin backends may consume <strong>via gateway</strong> for cross‑role features (attendance views, analytics).</li>
+          </ul>
+        </li>
+        <li>Shared types (DTOs, enums) live in <code>@mindforge/shared</code> to avoid cross‑service imports.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>3. High‑Level Architecture</h2>
+
+      <h3>3.1 Components</h3>
+
+      <h4>1. Teacher Frontend (React + Vite)</h4>
+      <ul>
+        <li>Role: <code>Teacher</code> (and <code>Admin</code> with elevated capabilities).</li>
+        <li>Key modules:
+          <ul>
+            <li>Class &amp; attendance screen (per class session).</li>
+            <li>Syllabus upload &amp; processing status.</li>
+            <li>Test builder:
+              <ul>
+                <li>Online daily quiz config (objective only).</li>
+                <li>Offline printable test config (with numericals and long answers).</li>
+              </ul>
+            </li>
+            <li>Results &amp; analytics dashboards.</li>
+            <li>Alerts &amp; notifications list.</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h4>2. Teacher Backend (NestJS)</h4>
+      <p>Logical modules:</p>
+      <ul>
+        <li><strong>Class &amp; Attendance Module</strong>
+          <ul>
+            <li>Class definition &amp; timetable.</li>
+            <li>Student–class–section mapping.</li>
+            <li>Attendance records per class session.</li>
+            <li>Attendance alerts engine (absent &gt;2 days/week).</li>
+          </ul>
+        </li>
+        <li><strong>Syllabus &amp; AI Ingestion Module</strong>
+          <ul>
+            <li>File upload (PDF/Image) to object storage.</li>
+            <li>OCR + text extraction pipeline.</li>
+            <li>AI‑based concept extraction:
+              <ul>
+                <li>Concept summary.</li>
+                <li>Learning objectives.</li>
+                <li>Numerical presence flag.</li>
+              </ul>
+            </li>
+            <li>Stores structured “LessonSession” entities, linked to classes.</li>
+          </ul>
+        </li>
+        <li><strong>Test Authoring &amp; Generation Module</strong>
+          <ul>
+            <li><strong>Online daily quiz</strong> (no numericals):
+              <ul>
+                <li>Objective types: MCQ, Fill in blanks, True/False only.</li>
+                <li>Timer logic: 1 mark = 1 minute.</li>
+                <li>Question navigation &amp; status states.</li>
+              </ul>
+            </li>
+            <li><strong>Offline printable tests</strong>:
+              <ul>
+                <li>Question mix: MCQ, FIB, T/F, Very Short, Short, Long (+ numericals).</li>
+                <li>PDF generation:
+                  <ul>
+                    <li>Student Question Paper.</li>
+                    <li>Teacher Answer Key with solutions &amp; explanations.</li>
+                  </ul>
+                </li>
+                <li>AI generation for:
+                  <ul>
+                    <li>Numericals (if syllabus has numericals).</li>
+                    <li>Model answers &amp; stepwise solutions.</li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li><strong>Evaluation &amp; Results Module</strong>
+          <ul>
+            <li>Online test evaluation:
+              <ul>
+                <li>Auto‑grade objective items.</li>
+                <li>Store score, % and attempted vs not‑attempted counts.</li>
+              </ul>
+            </li>
+            <li>Offline test evaluation:
+              <ul>
+                <li>Teacher mark entry per question / per section.</li>
+                <li>Aggregate analytics updates.</li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li><strong>Notifications &amp; Alerts Module</strong>
+          <ul>
+            <li>Absence alerts (&gt;2 days/week).</li>
+            <li>Missed online test deadlines.</li>
+            <li>Auto‑submission notifications.</li>
+            <li>Delivery:
+              <ul>
+                <li>v1: in‑app notifications + hooks for future push/email.</li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li><strong>Analytics Module</strong>
+          <ul>
+            <li>Teacher dashboards:
+              <ul>
+                <li>Weekly performance tracking.</li>
+                <li>Attendance trends.</li>
+                <li>Score trends.</li>
+                <li>Weak concepts &amp; students needing extra coaching.</li>
+              </ul>
+            </li>
+            <li>Exposes aggregate read APIs for Student/Parent/Admin views (role‑scoped).</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h4>3. AI Integration Layer</h4>
+      <ul>
+        <li>Dedicated module encapsulating all AI calls:
+          <ul>
+            <li>OCR and text extraction.</li>
+            <li>Concept extraction from syllabus.</li>
+            <li>Question generation for online/offline tests.</li>
+            <li>Explanation / model‑answer generation.</li>
+          </ul>
+        </li>
+        <li>Strict prompts:
+          <ul>
+            <li>Online tests: objective only, no numericals.</li>
+            <li>Offline tests: explanations and stepwise solutions for numericals.</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h4>4. Database (Teacher Service)</h4>
+      <p>PostgreSQL schema (simplified conceptual tables):</p>
+      <ul>
+        <li><code>class</code>, <code>class_session</code>, <code>class_student</code></li>
+        <li><code>attendance_record</code> (per session/student, status, timestamp, editable_until)</li>
+        <li><code>syllabus_document</code>, <code>lesson_session</code> (AI output)</li>
+        <li><code>test_definition</code>, <code>test_question</code></li>
+        <li><code>test_attempt</code>, <code>offline_mark_entry</code></li>
+        <li><code>notification_event</code>, <code>teacher_dashboard_snapshot</code> (optional)</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>4. Key Data Flows</h2>
+
+      <h3>4.1 Class &amp; Attendance</h3>
+      <ul>
+        <li><strong>Class &amp; student mapping</strong>:
+          <ul>
+            <li>Classes, sections, timetables defined in Teacher app.</li>
+            <li>Mappings stored in Teacher backend; Student/Parent read aggregated attendance via gateway.</li>
+          </ul>
+        </li>
+        <li><strong>Marking attendance</strong>:
+          <ul>
+            <li>Default all students to Present; teacher marks Absentees.</li>
+            <li>Records editable same day; admin override later from Admin app.</li>
+          </ul>
+        </li>
+        <li><strong>Attendance aggregation &amp; analytics</strong>:
+          <ul>
+            <li>Daily/weekly/monthly summaries with % attendance.</li>
+            <li>APIs for teacher dashboards and student/parent views.</li>
+          </ul>
+        </li>
+        <li><strong>Attendance alerts</strong>:
+          <ul>
+            <li>Weekly checks for &gt;2 absences/week.</li>
+            <li>Create notifications for Teacher and Parent.</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h3>4.2 Syllabus Upload &amp; AI Processing</h3>
+      <ul>
+        <li>Teacher uploads file tagged with Class, Subject, Date, Duration.</li>
+        <li>Teacher backend stores file, then background worker runs OCR + concept extraction.</li>
+        <li>Outputs stored as <code>lesson_session</code> for test generation and analytics.</li>
+      </ul>
+
+      <h3>4.3 Online Test Flow (Daily Quiz)</h3>
+      <ul>
+        <li>Teacher configures daily quiz from recent syllabus.</li>
+        <li>AI generates objective questions (MCQ/FIB/T/F, no numericals).</li>
+        <li>Student app consumes test definition; timer logic 1 mark = 1 minute.</li>
+        <li>Auto submission at timer end; auto‑grading; results stored and used for notifications.</li>
+      </ul>
+
+      <h3>4.4 Offline Test (Printable PDF)</h3>
+      <ul>
+        <li>Teacher defines scope, marks, duration, and question mix.</li>
+        <li>AI generates concept and numerical questions plus model answers/solutions.</li>
+        <li>PDF engine builds Student paper + Teacher key with header, sections, marks.</li>
+      </ul>
+
+      <h3>4.5 Evaluation Engine &amp; Analytics</h3>
+      <ul>
+        <li>Online: fully auto‑graded, with scores, % and attempted counts.</li>
+        <li>Offline: teacher enters marks; analytics refreshed.</li>
+        <li>Dashboards: attendance &amp; performance trends, weak concepts, at‑risk students.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>5. Cross‑App Integration &amp; Boundaries</h2>
+
+      <h3>5.1 With Student App</h3>
+      <ul>
+        <li>Attendance:
+          <ul>
+            <li>Teacher backend is the system of record.</li>
+            <li>Student app reads summaries and calendar views via gateway.</li>
+          </ul>
+        </li>
+        <li>Tests:
+          <ul>
+            <li>Student app gets online test definitions/questions and results via gateway.</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h3>5.2 With Parent &amp; Admin Apps</h3>
+      <ul>
+        <li>Parent app:
+          <ul>
+            <li>Reads attendance and results for own student(s).</li>
+          </ul>
+        </li>
+        <li>Admin app:
+          <ul>
+            <li>Higher‑level views and possible attendance overrides (future).</li>
+          </ul>
+        </li>
+      </ul>
+      <p>All cross‑role access uses <strong>Gateway + Teacher backend</strong>; no direct DB sharing.</p>
+    </section>
+
+    <section>
+      <h2>6. Security, Roles &amp; Data Sensitivity</h2>
+
+      <h3>6.1 Roles &amp; Access</h3>
+      <ul>
+        <li><strong>Teacher</strong>:
+          <ul>
+            <li>Full access to own classes, syllabus, tests, analytics.</li>
+          </ul>
+        </li>
+        <li><strong>Student / Parent / Admin</strong>:
+          <ul>
+            <li>Read‑only via gateway, scoped to their student(s) or institution.</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h3>6.2 Data Classification</h3>
+      <ul>
+        <li>Attendance records: sensitive educational data; encrypt in transit and at rest (recommended).</li>
+        <li>Test / performance data: same sensitivity as student performance data.</li>
+        <li>Syllabus &amp; AI outputs: internal content, not raw‑exposed to students.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>7. Key Risks &amp; Mitigations</h2>
+      <ul>
+        <li><strong>Incorrect attendance</strong> impacting alerts/analytics:
+          <ul>
+            <li>Same‑day edit window, admin overrides, “Last updated” timestamps.</li>
+          </ul>
+        </li>
+        <li><strong>AI‑generated questions breaking rules</strong> (numericals in online tests):
+          <ul>
+            <li>Backend validation; reject numeric patterns for online tests; test suites for prompts.</li>
+          </ul>
+        </li>
+        <li><strong>AI quality / syllabus alignment</strong>:
+          <ul>
+            <li>Ground on lesson_session; preview/regenerate options for teachers.</li>
+          </ul>
+        </li>
+        <li><strong>AI performance &amp; cost</strong>:
+          <ul>
+            <li>Queue heavy work; cache generated tests/explanations.</li>
+          </ul>
+        </li>
+        <li><strong>Notification overload</strong>:
+          <ul>
+            <li>Coalesce alerts; allow per‑channel preferences later.</li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>8. Implementation Order (Architecture‑Aligned)</h2>
+      <ol>
+        <li>Class &amp; Student Mapping.</li>
+        <li>Attendance Module.</li>
+        <li>Syllabus Upload Module.</li>
+        <li>AI Concept Extraction Engine.</li>
+        <li>Online Question Generator (objective, no numericals).</li>
+        <li>Printable Question Generator (concept + numericals).</li>
+        <li>Explanation Generation Engine.</li>
+        <li>Timer Engine.</li>
+        <li>Navigation &amp; Question Status Engine.</li>
+        <li>Auto Submission Logic.</li>
+        <li>Evaluation Engine.</li>
+        <li>PDF Generator.</li>
+        <li>Analytics Engine.</li>
+        <li>Notification Engine.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>STANDARD HANDOFF – To UX / UI Agent (Teacher App)</h2>
+      <p><strong>PROJECT:</strong> Mindforge Teacher App<br />
+      <strong>PHASE:</strong> Architecture → UX / UI (navigation‑first)<br />
+      <strong>ARTIFACT SOURCE:</strong> <code>docs/architecture/teacher/Mindforge_Teacher_App_Architecture_v1.md</code></p>
+
+      <h3>Context summary (for UX)</h3>
+      <p>New Teacher app (React + Vite) with its own backend (NestJS), integrated into the existing Mindforge monorepo via the API Gateway.</p>
+      <p>Core workflows: attendance, syllabus upload, test creation (online/offline), results &amp; analytics, alerts.</p>
+
+      <h3>What UX SHOULD design now</h3>
+      <ul>
+        <li>Global navigation and entry points for:
+          <ul>
+            <li>Classes &amp; Attendance.</li>
+            <li>Syllabus Upload &amp; AI processing status.</li>
+            <li>Test Builder (online &amp; offline).</li>
+            <li>Results &amp; Analytics.</li>
+            <li>Alerts &amp; Notifications.</li>
+          </ul>
+        </li>
+        <li>Core flows and screens:
+          <ul>
+            <li>Take attendance for a class session.</li>
+            <li>Attendance calendar views (present/absent counts).</li>
+            <li>Upload syllabus and inspect extracted concepts.</li>
+            <li>Configure and preview online daily quiz; configure offline tests; download PDFs.</li>
+            <li>View results and analytics dashboards.</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h3>UX constraints &amp; rules</h3>
+      <ul>
+        <li>Assume moderate connectivity; web‑first design (desktop + tablet), with mobile responsive support.</li>
+        <li>Attendance calendar must clearly mark present vs absent days and show period summaries.</li>
+        <li>Online tests must:
+          <ul>
+            <li>Visibly enforce “no numericals”.</li>
+            <li>Show timer and question navigation states (Not Visited / Visited / Answered / Not Attempted).</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h3>Open questions for UX / Product</h3>
+      <ol>
+        <li>How granular should attendance filters be (per student, per class, per term)?</li>
+        <li>Minimum complexity for dashboards (lists vs graphs in v1).</li>
+        <li>Branding and layout customization needed for printable PDFs.</li>
+      </ol>
+
+      <h3>Handoff status</h3>
+      <p>Teacher app architecture and module boundaries are defined and aligned with the workspace architecture and student Light Architecture v2. UX / UI may now proceed.</p>
+
+      <p><strong>Signature:</strong> Architect AI Agent – Mindforge Teacher App (v1)</p>
+    </section>
+  </main>
+</body>
+</html>
+

@@ -1,10 +1,56 @@
 {
 	"folders": [
 		{
-			"path": "."
+			"path": ".",
+			"name": "Mindforge (root)"
 		},
 		{
-			"path": "../../cursor-agents"
+			"path": "apps/student/frontend",
+			"name": "Student Frontend"
+		},
+		{
+			"path": "apps/student/backend",
+			"name": "Student Backend"
+		},
+		{
+			"path": "apps/student/mobile",
+			"name": "Student Mobile"
+		},
+		{
+			"path": "apps/parent/frontend",
+			"name": "Parent Frontend"
+		},
+		{
+			"path": "apps/parent/backend",
+			"name": "Parent Backend"
+		},
+		{
+			"path": "apps/teacher/frontend",
+			"name": "Teacher Frontend"
+		},
+		{
+			"path": "apps/teacher/backend",
+			"name": "Teacher Backend"
+		},
+		{
+			"path": "apps/admin/frontend",
+			"name": "Admin Frontend"
+		},
+		{
+			"path": "apps/admin/backend",
+			"name": "Admin Backend"
+		},
+		{
+			"path": "services/gateway",
+			"name": "API Gateway"
+		},
+		{
+			"path": "shared",
+			"name": "Shared Core"
+		},
+		{
+			"path": "../../cursor-agents",
+			"name": "Cursor Agents"
 		}
 	],
 	"settings": {}

@@ -1,242 +1,717 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Mindforge Student Experience — Technical Architecture (Final)</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-      :root {
-        color-scheme: light;
-        --bg: #f5fbef;
-        --panel: #ffffff;
-        --border: #c5d4be;
-        --text: #503d42;
-        --muted: #6b5a5e;
-        --accent: #748b75;
-        --accent-soft: #e2ebe0;
-        --accent-dark: #5a6b5a;
-        --code-bg: #2d2527;
-        --code-border: #503d42;
-        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-        --sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        padding: 2rem 1rem 4rem;
-        font-family: var(--sans);
-        background: radial-gradient(circle at top, #e2ebe0 0, #f5fbef 40%, #f0f5ec 100%);
-        color: var(--text);
-      }
-      .page {
-        max-width: 1000px;
-        margin: 0 auto;
-        background: var(--panel);
-        border-radius: 16px;
-        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(148, 163, 184, 0.3);
-        padding: 2.25rem 2.5rem 2.5rem;
-      }
-      header { border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; margin-bottom: 1.75rem; }
-      h1 { margin: 0 0 0.5rem; font-size: 1.9rem; letter-spacing: -0.03em; color: var(--accent-dark); }
-      .meta { font-size: 0.9rem; color: var(--muted); }
-      h2 {
-        margin-top: 2.2rem;
-        margin-bottom: 0.75rem;
-        font-size: 1.25rem;
-        letter-spacing: -0.01em;
-        color: var(--accent-dark);
-        border-bottom: 2px solid var(--accent-soft);
-        padding-bottom: 0.5rem;
-      }
-      h3 { margin-top: 1.5rem; margin-bottom: 0.35rem; font-size: 1.05rem; color: var(--text); }
-      h4 { margin-top: 1.2rem; margin-bottom: 0.25rem; font-size: 0.95rem; color: var(--muted); }
-      p { line-height: 1.6; margin: 0.35rem 0 0.75rem; }
-      ul, ol { margin: 0.35rem 0 0.9rem 1.25rem; padding: 0; }
-      li { margin: 0.15rem 0; line-height: 1.5; }
-      table { border-collapse: collapse; width: 100%; margin: 0.5rem 0 1.35rem; font-size: 0.9rem; }
-      th, td { border: 1px solid var(--border); padding: 0.55rem 0.65rem; text-align: left; vertical-align: top; }
-      th { background: #f3f4f6; font-weight: 600; }
-      code { font-family: var(--mono); font-size: 0.88em; background: #f3f4f6; padding: 0.1rem 0.35rem; border-radius: 4px; }
-      pre {
-        margin: 0.75rem 0 1rem;
-        padding: 1rem 1.2rem;
-        border-radius: 10px;
-        background: var(--code-bg);
-        color: #e5e7eb;
-        border: 1px solid var(--code-border);
-        overflow-x: auto;
-        font-size: 0.82rem;
-        line-height: 1.45;
-      }
-      pre code { font-family: var(--mono); background: transparent; padding: 0; }
-      .handoff { background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px; padding: 1rem 1.25rem; margin-top: 1.5rem; font-size: 0.9rem; }
-      .approved { color: #059669; font-weight: 700; }
-    </style>
-  </head>
-  <body>
-    <div class="page">
-      <header>
-        <h1>Mindforge Student Experience — Technical Architecture (Final)</h1>
-        <p class="meta">
-          <strong>Artifact:</strong> Mindforge_Student_Experience_Technical_Architecture_Final<br />
-          <strong>Path:</strong> docs/architecture/final/Mindforge_Student_Experience_Technical_Architecture_Final.md<br />
-          <strong>Project:</strong> Mindforge Student Experience · <strong>Date:</strong> February 6, 2026 · <strong>Mode:</strong> Architect AI Agent (Final Mode)
-        </p>
-        <p class="meta"><strong>Constraints locked:</strong> Light Architecture v2; UX Specification (Approved) — no UX or feature changes.</p>
-      </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mindforge Student Experience -- Technical Architecture (v3 -- Teacher-Grounded AI System)</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+      margin: 2rem auto;
+      padding: 0 1.5rem 3rem;
+      max-width: 900px;
+      color: #111827;
+      background: #f9fafb;
+    }
+    h1, h2, h3, h4 {
+      color: #111827;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    h2 {
+      font-size: 1.5rem;
+      margin-top: 2rem;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 0.25rem;
+    }
+    h3 {
+      font-size: 1.1rem;
+      margin-top: 1.25rem;
+    }
+    p {
+      margin: 0.5rem 0;
+    }
+    ul, ol {
+      padding-left: 1.5rem;
+    }
+    li {
+      margin: 0.35rem 0;
+    }
+    strong {
+      font-weight: 600;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+    th, td {
+      border: 1px solid #d1d5db;
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+    }
+    th {
+      background: #f3f4f6;
+      font-weight: 600;
+    }
+    tr:nth-child(even) {
+      background: #f9fafb;
+    }
+    pre {
+      background: #1f2937;
+      color: #e5e7eb;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.9em;
+    }
+    blockquote {
+      border-left: 4px solid #6366f1;
+      margin: 1rem 0;
+      padding: 0.5rem 1rem;
+      background: #eef2ff;
+      color: #374151;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 2rem 0;
+    }
+    .handoff-block {
+      margin-top: 2rem;
+      padding: 1.25rem 1.5rem;
+      border-radius: 0.75rem;
+      background: #eef2ff;
+      border: 1px solid #e0e7ff;
+    }
 
-      <h2>1. Activated Modes Summary</h2>
-      <table>
-        <thead><tr><th>Mode</th><th>Trigger</th><th>Application</th></tr></thead>
-        <tbody>
-          <tr><td><strong>Strategy & Discovery</strong></td><td>Multi-platform, single backend, sync</td><td>Architecture boundaries; no scope creep.</td></tr>
-          <tr><td><strong>Governance & Architecture Lock</strong></td><td>UX approved</td><td>Technical contract; no feature additions.</td></tr>
-          <tr><td><strong>AI-First / Cloud-Native</strong></td><td>AI roles, India single-region</td><td>AI components, cost tiers, deployment.</td></tr>
-          <tr><td><strong>Security-by-Design</strong></td><td>PII, MPIN, educational/attendance data</td><td>AuthN/AuthZ, data protection, threats.</td></tr>
-        </tbody>
-      </table>
+  </style>
+</head>
+<body>
+<h1 id="mindforge-student-experience-technical-architecture-v3-teacher-grounded-ai-system">Mindforge Student Experience -- Technical Architecture (v3 -- Teacher-Grounded AI System)</h1>
+<p><strong>Artifact name</strong>: Mindforge_Student_Experience_Technical_Architecture_Final<br />
+<strong>Suggested file path</strong>: docs/architecture/final/Mindforge_Student_Experience_Technical_Architecture_Final.md<br />
+<strong>Project</strong>: Mindforge Student Experience<br />
+<strong>Date</strong>: February 20, 2026<br />
+<strong>Mode</strong>: Architect AI Agent (Final Mode)</p>
+<p><strong>Constraints locked</strong>:<br />
+- Light Architecture: <code>docs/Mindforge_Student_Experience_Light_Architecture_v2.md</code> (v3 -- Teacher-Grounded Closed AI)<br />
+- UX Specification (Approved): <code>docs/Mindforge_Student_Experience_UX_Design_Specification.md</code> -- <strong>no UX or feature changes</strong>.</p>
+<hr />
+<h2 id="1-activated-modes-summary">1. Activated Modes Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Trigger</th>
+<th>Application</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Strategy &amp; Discovery</strong></td>
+<td>Multi-platform (Android, iOS, desktop), single backend, sync requirements</td>
+<td>Architecture boundaries and component ownership defined; no scope creep.</td>
+</tr>
+<tr>
+<td><strong>Governance &amp; Architecture Lock</strong></td>
+<td>UX approved; downstream planning/development depends on this artifact</td>
+<td>This document is the technical contract; no feature additions.</td>
+</tr>
+<tr>
+<td><strong>AI-First / Cloud-Native</strong></td>
+<td>AI roles (Homework Generator, Quiz Engine, Doubt Solver, Gap-Bridge), Teacher-Grounded Closed AI, India single-region deployment</td>
+<td>AI components, cost tiers, teacher content pipeline, and cloud deployment assumptions documented.</td>
+</tr>
+<tr>
+<td><strong>Security-by-Design</strong></td>
+<td>PII (students, minors), 6-digit MPIN, educational records, attendance data, teacher IP</td>
+<td>AuthN/AuthZ, data protection, teacher material access control, and threat mitigations defined.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2-assumptions-constraints">2. Assumptions &amp; Constraints</h2>
+<h3 id="assumptions">Assumptions</h3>
+<ul>
+<li><strong>Identity provisioning</strong>: Account creation (e.g. phone/identifier binding) is done by a separate provisioning flow; this architecture consumes "student identity" and <strong>MPIN verification</strong> only.</li>
+<li><strong>Teacher content</strong>: Teachers upload study material (PDFs, notes, worksheets) via a dedicated upload API. Material is processed into chunks with embeddings and stored in vector storage. This replaces the previous NotebookLM dependency entirely.</li>
+<li><strong>No external knowledge</strong>: The AI system is a strict closed-domain system. It answers exclusively from teacher-uploaded material. No external feeds, no general LLM knowledge, no internet content.</li>
+<li><strong>Attendance source</strong>: Attendance records (present/absent per day) are available to the backend (source TBD); student-facing UX is read-only; no self-correction of attendance in scope.</li>
+<li><strong>Single region</strong>: Initial deployment is India-focused; multi-region not required in this phase.</li>
+<li><strong>No full offline</strong>: Partial caching and queued actions; no full offline app experience in v1.</li>
+<li><strong>Scale (light)</strong>: Single-region, moderate user growth; no global multi-region consistency design.</li>
+</ul>
+<h3 id="constraints-from-light-architecture-ux">Constraints (from Light Architecture + UX)</h3>
+<ul>
+<li><strong>UX locked</strong>: Screens, navigation (Home, Attendance, Doubts, Profile), flows, and states are as per UX spec -- no changes.</li>
+<li><strong>6-digit MPIN only</strong> for student login; rate limiting and lockout mandatory.</li>
+<li><strong>AI behavior</strong>: Progressive guidance (Hints -&gt; Approach -&gt; Concept -&gt; Solution); no direct answers by default; teacher-material-only content; fail closed with "Not found in provided material." when retrieval fails.</li>
+<li><strong>Platforms</strong>: Android app, iOS app, desktop browser; shared backend and data model; sync across devices.</li>
+<li><strong>Low bandwidth</strong>: Small payloads, lazy-load AI/rich media, usable on unstable 3G.</li>
+<li><strong>Data sensitivity</strong>: PII and educational/attendance data; encryption in transit (HTTPS); encryption at rest recommended; minimal PII to AI providers (pseudonymous IDs). Teacher material is intellectual property; access control enforced per class.</li>
+</ul>
+<hr />
+<h2 id="3-high-level-architecture">3. High-Level Architecture</h2>
+<h3 id="31-components">3.1 Components</h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Component</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Client</strong></td>
+<td><strong>UI / Navigational layer</strong></td>
+<td>Android app, iOS app, Web app. Handles routes/screens (Login, Home, Activity, Results, Attendance, Doubts, Profile), bottom nav/sidebar, and all UX states per spec.</td>
+</tr>
+<tr>
+<td><strong>Client</strong></td>
+<td><strong>API client / sync</strong></td>
+<td>Calls backend APIs; handles auth (MPIN-derived token); optional local queue for offline actions and sync state.</td>
+</tr>
+<tr>
+<td><strong>Backend</strong></td>
+<td><strong>API / Gateway layer</strong></td>
+<td>REST API; request validation; auth (token/session); rate limiting; routing to business layer.</td>
+</tr>
+<tr>
+<td><strong>Backend</strong></td>
+<td><strong>Business logic layer (middle layer)</strong></td>
+<td>Application services: auth (MPIN verify, lockout), today's plan, activity lifecycle, grading rules, <strong>teacher content ingestion</strong>, <strong>retrieval (vector search)</strong>, <strong>AI orchestration</strong>, <strong>response validation</strong>, attendance aggregation, doubt context. No direct DB access.</td>
+</tr>
+<tr>
+<td><strong>Backend</strong></td>
+<td><strong>Data access layer (database interaction layer)</strong></td>
+<td>Repositories/DAOs: CRUD and queries for students, activities, questions, responses, attendance, syllabus, AI logs, <strong>teacher materials</strong>, <strong>embeddings</strong>, <strong>AI usage logs</strong>. Abstracts DB.</td>
+</tr>
+<tr>
+<td><strong>Backend</strong></td>
+<td><strong>Database</strong></td>
+<td>Persistent store for users, syllabus, content, attempts, attendance, sessions, <strong>teacher_materials</strong>, <strong>teacher_material_chunks</strong> (with embedding vectors), <strong>ai_usage_logs</strong>.</td>
+</tr>
+<tr>
+<td><strong>External</strong></td>
+<td><strong>AI provider(s)</strong></td>
+<td>Stateless LLM generation/evaluation; no persistent student data on provider side.</td>
+</tr>
+<tr>
+<td><strong>External</strong></td>
+<td><strong>Embedding model</strong></td>
+<td>Stateless embedding generation for teacher material chunks. May be same provider or dedicated API.</td>
+</tr>
+<tr>
+<td><strong>Infrastructure</strong></td>
+<td><strong>Cloud object storage</strong></td>
+<td>Secure storage for raw teacher-uploaded files (PDFs, notes).</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-responsibilities">3.2 Responsibilities</h3>
+<ul>
+<li><strong>UI / Navigational layer</strong>: Render screens per UX spec; manage navigation (e.g. <code>/login</code>, <code>/home</code>, <code>/activity/:type/:id</code>, <code>/results/:type/:id</code>, <code>/attendance</code>, <code>/doubts</code>, <code>/profile</code>); handle loading/error/empty/offline states; collect user input and call API client.</li>
+<li><strong>API layer</strong>: Validate input; authenticate requests; enforce rate limits; delegate to business layer; return consistent JSON and HTTP status codes.</li>
+<li><strong>Business logic layer</strong>: Implement use cases (login, today's plan, start/submit activity, evaluate answer, <strong>ingest teacher content</strong>, <strong>retrieve relevant chunks via vector search</strong>, <strong>orchestrate AI with retrieved context</strong>, <strong>validate AI response for citation and confidence</strong>, attendance summary, doubt with syllabus context); enforce pedagogical and business rules; call data access layer and external services (AI, embedding model).</li>
+<li><strong>Data access layer</strong>: Execute all DB reads/writes; map domain objects to/from DB schema; ensure queries are efficient and scoped by student/tenant where applicable.</li>
+<li><strong>Database</strong>: Persist students, syllabus (class/subject/chapter/topic), activities (homework/quiz/test), questions, responses, grades, attendance, doubt threads, sessions, audit data, <strong>teacher_materials</strong>, <strong>teacher_material_chunks</strong> (with embeddings), <strong>ai_usage_logs</strong>.</li>
+</ul>
+<h3 id="33-communication-patterns">3.3 Communication Patterns</h3>
+<ul>
+<li><strong>Client &lt;-&gt; Backend</strong>: REST over HTTPS; JSON request/response; Bearer token (or session cookie) after MPIN login.</li>
+<li><strong>API layer -&gt; Business layer</strong>: In-process calls (e.g. service interfaces); DTOs or domain objects.</li>
+<li><strong>Business layer -&gt; Data access layer</strong>: In-process calls (repositories); domain or DTOs.</li>
+<li><strong>Business layer -&gt; AI</strong>: Outbound HTTP to AI provider(s); prompts include only retrieved teacher material chunks and syllabus context (pseudonymous IDs); responses validated for citation and then persisted via data access layer.</li>
+<li><strong>Business layer -&gt; Embedding model</strong>: Outbound HTTP for generating embeddings during teacher content ingestion.</li>
+<li><strong>Sync</strong>: Client polls or uses short-polling/SSE for "today's plan" and activity state; conflict resolution (e.g. "newer progress on another device") handled in business layer and exposed via API.</li>
+</ul>
+<hr />
+<h2 id="4-technology-stack">4. Technology Stack</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Choices</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Frontend</strong></td>
+<td>Cross-platform: React Native (or Flutter) for Android/iOS; React (or Next.js) for web. Shared UX spec and API contract.</td>
+<td>Single team can maintain one UX spec across three surfaces; reuse of logic and API client.</td>
+</tr>
+<tr>
+<td><strong>Backend</strong></td>
+<td>Stateless API service (e.g. Node.js/Express, or Java/Spring Boot, or Go).</td>
+<td>Fits single-region, horizontal scaling; clear separation of API, business, and data layers.</td>
+</tr>
+<tr>
+<td><strong>Data</strong></td>
+<td>Primary DB: PostgreSQL with <strong>pgvector extension</strong> for vector similarity search. Optional cache: Redis (sessions, rate limits, optional response cache).</td>
+<td>Relational model fits students, syllabus, activities, attendance; pgvector enables teacher material chunk retrieval without a separate vector DB.</td>
+</tr>
+<tr>
+<td><strong>Cloud &amp; DevOps</strong></td>
+<td>Single region (e.g. AWS/GCP in India). API behind load balancer; containers (e.g. Docker/Kubernetes or managed app runtime). DB managed (RDS/Cloud SQL). Secrets in vault. <strong>Cloud object storage</strong> (S3/GCS) for teacher material files.</td>
+<td>Aligns with India-focused, single-region assumption.</td>
+</tr>
+<tr>
+<td><strong>AI</strong></td>
+<td>LLM/GenAI via provider API (e.g. OpenAI-compatible or Google). Embedding model for vector generation. Structured evaluation for MCQs where possible.</td>
+<td>Stateless AI; cost control via tiering (cheap for grading, higher for doubt/concept). Embedding one-time per upload.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-api-data-model-overview">5. API &amp; Data Model Overview</h2>
+<h3 id="51-database-high-level">5.1 Database (High-Level)</h3>
+<ul>
+<li><strong>students</strong>: identity (id, external_id for provisioning), class, board, school, display_name; no password; MPIN hash (or equivalent) for verification; consent flags.</li>
+<li><strong>syllabus_metadata</strong>: class, board, subject, chapter, topic (normalized hierarchy).</li>
+<li><strong>teacher_materials</strong>: id, teacher_id, class, subject, file_name, file_type, storage_path, status (processing/ready/failed), uploaded_at.</li>
+<li><strong>teacher_material_chunks</strong>: id, material_id (FK to teacher_materials), chunk_text, chunk_index, embedding_vector (pgvector), syllabus_ref (class, subject, chapter, topic), created_at.</li>
+<li><strong>activities</strong>: homework/quiz/test instances (student_id, type, syllabus ref, status, created_at, due_at).</li>
+<li><strong>questions</strong>: question bank (syllabus ref, type, content, correct answer / rubric, source_chunk_id optional FK to teacher_material_chunks); linked to activities.</li>
+<li><strong>responses</strong>: student_id, question_id, activity_id, attempt payload, score, feedback_level, ai_conversation_ref, cited_chunk_ids (array of chunk IDs used in AI response).</li>
+<li><strong>attendance</strong>: student_id, date, status (present/absent), source_label; optionally period/term.</li>
+<li><strong>doubt_threads</strong>: student_id, syllabus context (class, subject, chapter, topic), messages (role, content, cited_chunk_ids), created_at.</li>
+<li><strong>sessions</strong>: student_id, token_or_session_id, device_info, created_at, expires_at; used for auth and optional lockout.</li>
+<li><strong>audit_log</strong>: sensitive operations (login attempts, lockouts, data access) for security and compliance.</li>
+<li><strong>ai_usage_logs</strong>: student_id, feature_type (homework_gen/quiz_gen/doubt/feedback/grading), model_used, tokens_used (prompt + completion), latency_ms, retrieval_chunk_count, timestamp.</li>
+</ul>
+<p>Indexes and constraints: by student_id, activity_id, material_id, date (attendance), syllabus keys, and embedding_vector (pgvector index for similarity search) for fast lookups.</p>
+<h3 id="52-api-endpoints-to-interact-with-database-via-business-data-layers">5.2 API Endpoints (to interact with database via business + data layers)</h3>
+<p>All below are <strong>logical</strong>; actual paths and HTTP verbs follow REST conventions. Auth required except where noted.</p>
+<table>
+<thead>
+<tr>
+<th>Domain</th>
+<th>Method</th>
+<th>Path (logical)</th>
+<th>Purpose</th>
+<th>Layer flow</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Auth</strong></td>
+<td>POST</td>
+<td><code>/auth/mpin/verify</code></td>
+<td>Verify MPIN; return token/session; apply rate limit and lockout</td>
+<td>API -&gt; Business (auth service) -&gt; Data (sessions, students)</td>
+</tr>
+<tr>
+<td><strong>Auth</strong></td>
+<td>POST</td>
+<td><code>/auth/lockout/status</code></td>
+<td>Check lockout state (e.g. after failed attempts)</td>
+<td>API -&gt; Business -&gt; Data</td>
+</tr>
+<tr>
+<td><strong>Auth</strong></td>
+<td>POST</td>
+<td><code>/auth/forgot-mpin</code></td>
+<td>Initiate MPIN recovery (e.g. send OTP to registered contact)</td>
+<td>API -&gt; Business -&gt; Data / external</td>
+</tr>
+<tr>
+<td><strong>Today's plan</strong></td>
+<td>GET</td>
+<td><code>/student/today</code></td>
+<td>Today's tasks (homework, quiz, gaps), progress summary</td>
+<td>API -&gt; Business -&gt; Data (activities, responses, attendance)</td>
+</tr>
+<tr>
+<td><strong>Activities</strong></td>
+<td>GET</td>
+<td><code>/student/activities/:type/:id</code></td>
+<td>Get activity + questions (e.g. for Activity screen)</td>
+<td>API -&gt; Business -&gt; Data</td>
+</tr>
+<tr>
+<td><strong>Activities</strong></td>
+<td>POST</td>
+<td><code>/student/activities/:type/:id/respond</code></td>
+<td>Submit answer; evaluate; optionally request AI feedback</td>
+<td>API -&gt; Business -&gt; Data + AI -&gt; Data</td>
+</tr>
+<tr>
+<td><strong>Activities</strong></td>
+<td>GET</td>
+<td><code>/student/activities/:type/:id/feedback</code></td>
+<td>Get AI feedback (next level) for current question</td>
+<td>API -&gt; Business -&gt; Retrieval -&gt; AI + Data</td>
+</tr>
+<tr>
+<td><strong>Activities</strong></td>
+<td>POST</td>
+<td><code>/student/activities/:type/:id/pause</code></td>
+<td>Save progress and pause (e.g. exit mid-activity)</td>
+<td>API -&gt; Business -&gt; Data</td>
+</tr>
+<tr>
+<td><strong>Results</strong></td>
+<td>GET</td>
+<td><code>/student/results/:type/:id</code></td>
+<td>Get activity result (score, breakdown, next suggestions)</td>
+<td>API -&gt; Business -&gt; Data</td>
+</tr>
+<tr>
+<td><strong>Attendance</strong></td>
+<td>GET</td>
+<td><code>/student/attendance</code></td>
+<td>Summary + calendar (present/absent by day); query params: period</td>
+<td>API -&gt; Business -&gt; Data (attendance)</td>
+</tr>
+<tr>
+<td><strong>Doubts</strong></td>
+<td>GET</td>
+<td><code>/student/doubts</code></td>
+<td>List threads or current thread</td>
+<td>API -&gt; Business -&gt; Data</td>
+</tr>
+<tr>
+<td><strong>Doubts</strong></td>
+<td>POST</td>
+<td><code>/student/doubts</code></td>
+<td>Create message with syllabus context (class, subject, chapter, topic)</td>
+<td>API -&gt; Business -&gt; Retrieval -&gt; AI + Data</td>
+</tr>
+<tr>
+<td><strong>Doubts</strong></td>
+<td>GET</td>
+<td><code>/student/doubts/:threadId</code></td>
+<td>Get thread messages</td>
+<td>API -&gt; Business -&gt; Data</td>
+</tr>
+<tr>
+<td><strong>Syllabus</strong></td>
+<td>GET</td>
+<td><code>/student/syllabus/tree</code></td>
+<td>Class -&gt; Subject -&gt; Chapter -&gt; Topic (for Doubts context selector)</td>
+<td>API -&gt; Business -&gt; Data</td>
+</tr>
+<tr>
+<td><strong>Profile</strong></td>
+<td>GET</td>
+<td><code>/student/profile</code></td>
+<td>Display name, class, board, progress overview</td>
+<td>API -&gt; Business -&gt; Data</td>
+</tr>
+<tr>
+<td><strong>Sync</strong></td>
+<td>GET</td>
+<td><code>/student/sync/status</code></td>
+<td>Last sync timestamp; conflict hint if any</td>
+<td>API -&gt; Business -&gt; Data</td>
+</tr>
+</tbody>
+</table>
+<p>Implementations <strong>must</strong> use the <strong>middle layer</strong> for all business rules (e.g. grading, lockout, AI level, retrieval, response validation); the <strong>data access layer</strong> is the only layer that talks to the database.</p>
+<h3 id="53-data-flow-example-student-asks-a-doubt">5.3 Data Flow (example: student asks a doubt)</h3>
+<ol>
+<li>Client: <code>POST /student/doubts</code> with <code>{ message, syllabusClass, syllabusSubject, syllabusChapter, syllabusTopic }</code>.</li>
+<li>API layer: Validate body, check auth, rate limit -&gt; call business layer (DoubtService).</li>
+<li>Business layer (DoubtService):<br />
+   a. Call <strong>RetrievalService</strong>: perform vector similarity search on <code>teacher_material_chunks</code> where class/subject/chapter match the syllabus context. Return top-K chunks with similarity scores.<br />
+   b. <strong>Confidence check</strong>: If best chunk similarity score is below threshold, skip AI call and return "Not found in provided material."<br />
+   c. Call <strong>AiOrchestratorService</strong>: build prompt with retrieved chunks as context, system prompt enforcing retrieval-only answering, student question. Call AI provider.<br />
+   d. Call <strong>ResponseValidatorService</strong>: check AI response contains valid chunk citation(s); check response is on-topic; reject if citation missing or off-topic.<br />
+   e. If valid: persist doubt message and AI response (with cited_chunk_ids) via data access layer.<br />
+   f. If invalid: return "Not found in provided material." and log rejection in ai_usage_logs.</li>
+<li>Data access layer: Run DB reads/writes (doubt_threads, doubt_messages, ai_usage_logs).</li>
+<li>API layer: Return 200 + response (AI answer with citation, or "Not found in provided material.").</li>
+</ol>
+<h3 id="54-data-flow-example-teacher-uploads-material">5.4 Data Flow (example: teacher uploads material)</h3>
+<ol>
+<li>Teacher upload endpoint receives file (PDF/notes) with metadata (teacher_id, class, subject).</li>
+<li>API layer: Validate file type/size, check auth (teacher role), rate limit -&gt; call business layer.</li>
+<li>Business layer (TeacherContentService):<br />
+   a. Store raw file in cloud object storage; record in <code>teacher_materials</code> table with status=processing.<br />
+   b. Parse file (PDF text extraction).<br />
+   c. Split text into semantic chunks (~500 tokens with overlap).<br />
+   d. For each chunk: generate embedding via embedding model API; store chunk text + embedding in <code>teacher_material_chunks</code> with syllabus_ref.<br />
+   e. Update <code>teacher_materials</code> status to ready.</li>
+<li>On failure at any step: mark status=failed; log error; allow retry.</li>
+</ol>
+<hr />
+<h2 id="6-module-structure-inside-modulesactivities">6. Module Structure (inside /modules/activities)</h2>
+<h3 id="61-new-services">6.1 New Services</h3>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>teacher-content.service</strong></td>
+<td>Handles teacher material upload, file validation, PDF parsing, text chunking, embedding generation orchestration, and material status lifecycle.</td>
+</tr>
+<tr>
+<td><strong>retrieval.service</strong></td>
+<td>Performs vector similarity search over <code>teacher_material_chunks</code> scoped by class/subject/chapter. Returns top-K chunks with confidence scores. Enforces access control (student's class teacher material only).</td>
+</tr>
+<tr>
+<td><strong>ai-orchestrator.service</strong></td>
+<td>Builds retrieval-augmented prompts (system prompt + retrieved chunks + student question). Calls AI provider. Enforces strict retrieval-only prompting rules (low temperature, no general knowledge instruction).</td>
+</tr>
+<tr>
+<td><strong>response-validator.service</strong></td>
+<td>Validates AI responses: checks for valid chunk citation(s), checks on-topic alignment, rejects responses without citation. Returns validated response or triggers "Not found in provided material."</td>
+</tr>
+</tbody>
+</table>
+<h3 id="62-new-repositories">6.2 New Repositories</h3>
+<table>
+<thead>
+<tr>
+<th>Repository</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>teacher-content.repository</strong></td>
+<td>CRUD for <code>teacher_materials</code> table. Query by teacher_id, class, subject, status.</td>
+</tr>
+<tr>
+<td><strong>embeddings.repository</strong></td>
+<td>CRUD for <code>teacher_material_chunks</code> table. Vector similarity search (pgvector). Query by material_id, syllabus_ref. Scoped by class/teacher.</td>
+</tr>
+<tr>
+<td><strong>ai-usage.repository</strong></td>
+<td>Insert and query <code>ai_usage_logs</code>. Aggregations for monitoring (tokens used per student, per feature, per day).</td>
+</tr>
+</tbody>
+</table>
+<h3 id="63-module-boundaries">6.3 Module Boundaries</h3>
+<ul>
+<li>These services and repositories live inside <code>/modules/activities</code> as they extend the activities domain (AI-powered homework, quiz, doubt, gap-bridge all flow through teacher content retrieval).</li>
+<li><strong>No cross-module DB access</strong>: Only the activities module repositories access <code>teacher_materials</code>, <code>teacher_material_chunks</code>, and <code>ai_usage_logs</code> tables.</li>
+<li>Controllers remain HTTP-only (no business logic).</li>
+<li>Services contain business logic only (no DB queries).</li>
+<li>Repositories contain DB interaction only (no business rules).</li>
+</ul>
+<hr />
+<h2 id="7-ai-architecture-governance">7. AI Architecture &amp; Governance</h2>
+<h3 id="71-closed-domain-ai-rules-non-negotiable">7.1 Closed-Domain AI Rules (Non-Negotiable)</h3>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Enforcement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Retrieval-only answering</strong></td>
+<td>System prompt explicitly instructs: "Answer ONLY from the provided context. Do not use your training data or general knowledge."</td>
+</tr>
+<tr>
+<td><strong>No free-form answering</strong></td>
+<td>AI prompt always includes retrieved teacher material chunks as the sole context. No open-ended generation without context.</td>
+</tr>
+<tr>
+<td><strong>No outside knowledge</strong></td>
+<td>System prompt includes: "If the answer is not in the provided context, respond exactly: Not found in provided material."</td>
+</tr>
+<tr>
+<td><strong>Low temperature</strong></td>
+<td>Temperature set to 0.1-0.2 for all calls. No creative or speculative responses.</td>
+</tr>
+<tr>
+<td><strong>Citation required</strong></td>
+<td>AI must cite the chunk_id(s) used. ResponseValidatorService rejects any response without valid citation.</td>
+</tr>
+<tr>
+<td><strong>Reject on missing citation</strong></td>
+<td>If the AI response does not include a parseable chunk citation, the response is discarded and "Not found in provided material." is returned.</td>
+</tr>
+<tr>
+<td><strong>Confidence threshold</strong></td>
+<td>RetrievalService checks similarity scores. If best match is below threshold (configurable, e.g. 0.7 cosine similarity), AI is not called; "Not found in provided material." returned directly.</td>
+</tr>
+<tr>
+<td><strong>Fail closed</strong></td>
+<td>On any error (AI timeout, retrieval failure, validation failure), the system returns "Not found in provided material." -- never a hallucinated or ungrounded answer.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="72-model-strategy">7.2 Model Strategy</h3>
+<ul>
+<li>Use LLM for doubt solving, conceptual explanations, and adaptive feedback -- all grounded in retrieved teacher material.</li>
+<li>Prefer deterministic or cheaper structured evaluation for MCQs and simple grading.</li>
+<li><strong>Data flow</strong>: Prompts include retrieved teacher material chunks and syllabus context (class, subject, chapter, topic); no raw PII; pseudonymous IDs. Responses validated (citation check, on-topic check) before storage and display.</li>
+<li><strong>Cost &amp; drift</strong>: High-frequency simple checks use cheaper/smaller models or rules; expensive calls for doubt/concept; monitor token usage via <code>ai_usage_logs</code> and set caps; periodic review of AI outputs for accuracy drift and over-helping (Light Architecture R1, R2).</li>
+</ul>
+<h3 id="73-prompt-structure">7.3 Prompt Structure</h3>
+<pre class="codehilite"><code>SYSTEM PROMPT:
+You are a study assistant for Class {class}, Subject {subject}.
+You must answer ONLY using the provided study material excerpts below.
+Do NOT use your own training data or general knowledge.
+If the answer is not found in the provided material, respond exactly:
+&quot;Not found in provided material.&quot;
 
-      <h2>2. Assumptions & Constraints</h2>
-      <h3>Assumptions</h3>
-      <ul>
-        <li>Identity provisioning done elsewhere; this architecture consumes student identity and MPIN verification only.</li>
-        <li>NotebookLM daily feeds available read-only; fallback to syllabus-level content when missing.</li>
-        <li>Attendance source TBD; student-facing UX read-only; no self-correction.</li>
-        <li>Single region (India); no multi-region in this phase.</li>
-        <li>Partial caching and queued actions; no full offline in v1.</li>
-      </ul>
-      <h3>Constraints (Light Architecture + UX)</h3>
-      <ul>
-        <li>UX locked: screens, navigation (Home, Attendance, Doubts, Profile), flows per UX spec.</li>
-        <li>6-digit MPIN only; rate limiting and lockout mandatory.</li>
-        <li>AI: progressive guidance; syllabus-aligned only.</li>
-        <li>Platforms: Android, iOS, desktop; shared backend and data; sync.</li>
-        <li>Low bandwidth; minimal PII to AI (pseudonymous IDs).</li>
-      </ul>
+For each statement you make, cite the source using [chunk:{chunk_id}] format.
+If you cannot cite a source, do not make the statement.
 
-      <h2>3. High-Level Architecture</h2>
-      <h3>3.1 Components</h3>
-      <table>
-        <thead><tr><th>Layer</th><th>Component</th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td>Client</td><td>UI / Navigational layer</td><td>Android, iOS, Web. Routes/screens (Login, Home, Activity, Results, Attendance, Doubts, Profile); bottom nav/sidebar; UX states per spec.</td></tr>
-          <tr><td>Client</td><td>API client / sync</td><td>REST over HTTPS; auth token; optional offline queue and sync state.</td></tr>
-          <tr><td>Backend</td><td>API / Gateway layer</td><td>REST API; validation; auth; rate limiting; route to business layer.</td></tr>
-          <tr><td>Backend</td><td>Business logic layer (middle layer)</td><td>Application services: auth, today’s plan, activities, grading, AI orchestration, attendance, doubts. No direct DB access.</td></tr>
-          <tr><td>Backend</td><td>Data access layer (DB interaction)</td><td>Repositories/DAOs: CRUD and queries. Only layer that talks to DB.</td></tr>
-          <tr><td>Backend</td><td>Database</td><td>Persistent store: students, syllabus, activities, responses, attendance, doubts, sessions.</td></tr>
-          <tr><td>External</td><td>NotebookLM</td><td>Read-only teaching feed.</td></tr>
-          <tr><td>External</td><td>AI provider(s)</td><td>Stateless; no persistent student data.</td></tr>
-        </tbody>
-      </table>
-      <h3>3.2 Responsibilities</h3>
-      <p><strong>UI / Navigational layer:</strong> Render screens per UX; manage routes; loading/error/offline states; call API client.</p>
-      <p><strong>API layer:</strong> Validate; authenticate; rate limit; delegate to business layer; return consistent JSON/HTTP.</p>
-      <p><strong>Business logic layer:</strong> Use cases (login, today’s plan, submit answer, AI feedback, attendance, doubts); call data access and external services.</p>
-      <p><strong>Data access layer:</strong> All DB reads/writes; map domain ↔ DB.</p>
-      <h3>3.3 Communication</h3>
-      <p>Client ↔ Backend: REST over HTTPS, JSON, Bearer token. API → Business → Data: in-process. Business → AI / NotebookLM: HTTP.</p>
+RETRIEVED CONTEXT:
+[chunk:{id_1}] {chunk_text_1}
+[chunk:{id_2}] {chunk_text_2}
+...
 
-      <h2>4. Technology Stack</h2>
-      <table>
-        <thead><tr><th>Area</th><th>Choices</th><th>Rationale</th></tr></thead>
-        <tbody>
-          <tr><td>Frontend</td><td>React Native (or Flutter) for mobile; React (or Next.js) for web</td><td>Shared UX and API contract.</td></tr>
-          <tr><td>Backend</td><td>Stateless API (e.g. Node/Express, Java/Spring, Go)</td><td>Horizontal scaling; clear API / Business / Data separation.</td></tr>
-          <tr><td>Data</td><td>PostgreSQL (or MySQL); optional Redis (sessions, rate limits)</td><td>Relational model; Redis for limits/session.</td></tr>
-          <tr><td>Cloud & DevOps</td><td>Single region (India); LB; containers; managed DB; secrets vault</td><td>Aligns with single-region assumption.</td></tr>
-          <tr><td>AI</td><td>LLM via provider API; deterministic grading where possible</td><td>Stateless; cost tiering.</td></tr>
-        </tbody>
-      </table>
+STUDENT QUESTION:
+{student_question}
+</code></pre>
 
-      <h2>5. API & Data Model Overview</h2>
-      <h3>5.1 Database (High-Level)</h3>
-      <ul>
-        <li><strong>students</strong>: id, external_id, class, board, school, display_name, MPIN hash, consent.</li>
-        <li><strong>syllabus_metadata</strong>: class, board, subject, chapter, topic.</li>
-        <li><strong>teaching_feed</strong>: NotebookLM daily summaries (class, date, summary).</li>
-        <li><strong>activities</strong>: student_id, type, syllabus ref, status, created_at, due_at.</li>
-        <li><strong>questions</strong>: syllabus ref, type, content, rubric.</li>
-        <li><strong>responses</strong>: student_id, question_id, activity_id, attempt, score, feedback_level.</li>
-        <li><strong>attendance</strong>: student_id, date, status (present/absent), source_label.</li>
-        <li><strong>doubt_threads</strong>: student_id, syllabus context, messages.</li>
-        <li><strong>sessions</strong>: student_id, token/session_id, device, expires_at.</li>
-        <li><strong>audit_log</strong>: sensitive operations.</li>
-      </ul>
-      <h3>5.2 API Endpoints (Logical)</h3>
-      <p>All go through API → Business → Data. Auth required unless noted.</p>
-      <table>
-        <thead><tr><th>Domain</th><th>Method</th><th>Path (logical)</th><th>Purpose</th></tr></thead>
-        <tbody>
-          <tr><td>Auth</td><td>POST</td><td>/auth/mpin/verify</td><td>Verify MPIN; return token; rate limit/lockout</td></tr>
-          <tr><td>Auth</td><td>POST</td><td>/auth/lockout/status</td><td>Check lockout state</td></tr>
-          <tr><td>Auth</td><td>POST</td><td>/auth/forgot-mpin</td><td>Initiate MPIN recovery</td></tr>
-          <tr><td>Today’s plan</td><td>GET</td><td>/student/today</td><td>Tasks, progress summary</td></tr>
-          <tr><td>Activities</td><td>GET</td><td>/student/activities/:type/:id</td><td>Get activity + questions</td></tr>
-          <tr><td>Activities</td><td>POST</td><td>/student/activities/:type/:id/respond</td><td>Submit answer; evaluate; AI feedback</td></tr>
-          <tr><td>Activities</td><td>GET</td><td>/student/activities/:type/:id/feedback</td><td>Get next AI feedback level</td></tr>
-          <tr><td>Activities</td><td>POST</td><td>/student/activities/:type/:id/pause</td><td>Save progress, pause</td></tr>
-          <tr><td>Results</td><td>GET</td><td>/student/results/:type/:id</td><td>Score, breakdown, next suggestions</td></tr>
-          <tr><td>Attendance</td><td>GET</td><td>/student/attendance</td><td>Summary + calendar (period param)</td></tr>
-          <tr><td>Doubts</td><td>GET/POST</td><td>/student/doubts, /student/doubts/:threadId</td><td>List/create thread; get messages; syllabus context</td></tr>
-          <tr><td>Syllabus</td><td>GET</td><td>/student/syllabus/tree</td><td>Class → Subject → Chapter → Topic (Doubts selector)</td></tr>
-          <tr><td>Profile</td><td>GET</td><td>/student/profile</td><td>Display name, class, progress overview</td></tr>
-          <tr><td>Sync</td><td>GET</td><td>/student/sync/status</td><td>Last sync; conflict hint</td></tr>
-        </tbody>
-      </table>
-
-      <h2>6. Error Handling Strategy</h2>
-      <ul>
-        <li><strong>API:</strong> Consistent shape <code>{ code, message, details? }</code>; 400/401/403/404/429/500/503.</li>
-        <li><strong>Business:</strong> Domain exceptions (InvalidMPIN, LockedOut, etc.); map to API codes; no stack to client.</li>
-        <li><strong>Data:</strong> Retry on transient DB errors; 409 or domain message for duplicates.</li>
-        <li><strong>AI:</strong> Timeout → fallback hint; provider error → “Try again?” + optional cached hint.</li>
-        <li><strong>Client (per UX):</strong> Inline validation; retry; offline/sync/conflict modals.</li>
-      </ul>
-
-      <h2>7. Deployment Assumptions</h2>
-      <ul>
-        <li>Single region (India); HTTPS LB; stateless API; managed DB; secrets in vault; CI/CD; DB migrations versioned; monitoring and health checks.</li>
-      </ul>
-
-      <h2>8. Security Architecture</h2>
-      <p><strong>AuthN:</strong> 6-digit MPIN verified by backend; short-lived token/session; Bearer/cookie. <strong>AuthZ:</strong> All student endpoints scoped by student_id. <strong>Data:</strong> HTTPS; encryption at rest; minimal PII in AI prompts. <strong>Threats:</strong> Rate limit/lockout on MPIN; validation and parameterized queries; audit log.</p>
-
-      <h2>9. AI Architecture & Governance</h2>
-      <p>LLM for doubt/concept; deterministic or cheaper evaluation for MCQs. Prompts: syllabus context + pseudonymous IDs; responses validated before storage. Cost/drift: tier usage; token caps; periodic review.</p>
-
-      <h2>10. Key Technical Decisions & Trade-offs</h2>
-      <table>
-        <thead><tr><th>Decision</th><th>Trade-off</th></tr></thead>
-        <tbody>
-          <tr><td>Three-tier backend (API → Business → Data)</td><td>Separation vs. extra hops; chosen for maintainability.</td></tr>
-          <tr><td>Single DB (PostgreSQL)</td><td>Simplicity/ACID vs. eventual read replicas.</td></tr>
-          <tr><td>REST over HTTPS</td><td>Wide support vs. no built-in real-time; poll/SSE acceptable.</td></tr>
-          <tr><td>MPIN-only auth</td><td>UX vs. weaker security; mitigated by rate limit, lockout.</td></tr>
-          <tr><td>Attendance read-only for student</td><td>Trust/consistency vs. no self-correction.</td></tr>
-        </tbody>
-      </table>
-
-      <h2>11. Risks & Mitigations</h2>
-      <table>
-        <thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
-        <tbody>
-          <tr><td>R1: AI hallucination / off-syllabus</td><td>Ground in syllabus + NotebookLM; validation; flag uncertainty.</td></tr>
-          <tr><td>R2: Over-helping</td><td>Enforce guidance levels; gate full solution; UX help level.</td></tr>
-          <tr><td>R3: Grading fairness</td><td>Deterministic for objective; clear explanations.</td></tr>
-          <tr><td>R4: Data privacy (minors)</td><td>Minimal PII to AI; consent; encryption; deletion path.</td></tr>
-          <tr><td>R5: NotebookLM feed quality</td><td>Fallback to syllabus content; label source.</td></tr>
-          <tr><td>R6: Connectivity</td><td>Cache; retry; offline/sync states in UI.</td></tr>
-          <tr><td>R7: MPIN brute-force</td><td>Rate limit; lockout; optional biometric.</td></tr>
-          <tr><td>R8: Attendance accuracy</td><td>Read-only; label period/source.</td></tr>
-        </tbody>
-      </table>
-
-      <h2>12. System Architecture Diagram (PDF-Ready)</h2>
-      <pre><code>┌─────────────────────────────────────────────────────────────────────────────────┐
-│                        MINDFORGE STUDENT EXPERIENCE                              │
-│                     EXECUTION TECHNICAL ARCHITECTURE                             │
-└─────────────────────────────────────────────────────────────────────────────────┘
+<hr />
+<h2 id="8-error-handling-strategy">8. Error Handling Strategy</h2>
+<ul>
+<li><strong>API layer</strong>: Consistent error response shape: <code>{ code, message, details? }</code>; HTTP status (4xx/5xx) per case; validation errors 400; auth 401; forbidden 403; not found 404; rate limit 429; server errors 500.</li>
+<li><strong>Business layer</strong>: Domain exceptions (e.g. InvalidMPIN, LockedOut, ActivityNotFound, MaterialNotFound, RetrievalBelowThreshold); map to API codes and messages; never expose internal stack to client.</li>
+<li><strong>Data layer</strong>: Transient DB errors -&gt; retry with backoff; duplicate/key errors -&gt; mapped to 409 or domain message; connection failures -&gt; 503 or retry.</li>
+<li><strong>AI</strong>: Timeout (e.g. 10s) -&gt; return "Not found in provided material." (fail closed); provider error -&gt; same fail-closed response; no raw AI errors to client.</li>
+<li><strong>Retrieval</strong>: Vector search failure or empty results -&gt; "Not found in provided material." with appropriate logging.</li>
+<li><strong>Teacher content ingestion</strong>: Parse/chunk/embed failures -&gt; mark material status=failed; allow teacher retry; do not surface partial chunks.</li>
+<li><strong>Client (per UX)</strong>: Inline validation; network errors with retry and "Save offline" where specified; AI failure with "Try Again"; session timeout modal; sync conflict modal ("Use latest?" / "Keep current").</li>
+<li><strong>Logging</strong>: Log errors with request id and no PII; audit security events (failed logins, lockouts); log AI usage (tokens, latency, retrieval counts) to ai_usage_logs.</li>
+</ul>
+<hr />
+<h2 id="9-deployment-assumptions">9. Deployment Assumptions</h2>
+<ul>
+<li><strong>Single region</strong>: India (e.g. ap-south-1 or equivalent); no multi-region DB or active-active in this phase.</li>
+<li><strong>API</strong>: Deployed behind HTTPS load balancer; horizontal scaling of stateless API instances.</li>
+<li><strong>Database</strong>: Managed RDBMS (e.g. RDS/Cloud SQL) with <strong>pgvector extension</strong> enabled; automated backups; encryption at rest; access only from API/backend network.</li>
+<li><strong>Cloud object storage</strong>: S3 bucket (or GCS) for teacher-uploaded files; server-side encryption; access via signed URLs or backend-only access; no direct student access to raw files.</li>
+<li><strong>Embedding worker</strong>: Teacher content processing (parse, chunk, embed) runs as an async job/worker to avoid blocking the upload request. Can be a queue-driven worker or background job within the API service.</li>
+<li><strong>Secrets</strong>: API keys, DB credentials, AI keys, embedding API keys in vault (e.g. AWS Secrets Manager / GCP Secret Manager); no secrets in code or client.</li>
+<li><strong>CI/CD</strong>: Build and test on commit; deploy to staging then production via pipeline; DB migrations versioned and applied in deploy.</li>
+<li><strong>Monitoring</strong>: Health checks, latency and error metrics, alerting on 5xx and auth failures. <strong>AI-specific monitoring</strong>: token usage per day/student, retrieval hit rate, "Not found" response rate, average retrieval confidence score.</li>
+<li><strong>Clients</strong>: Android/iOS via app stores; Web via CDN or same origin as API (CORS configured).</li>
+</ul>
+<hr />
+<h2 id="10-security-architecture">10. Security Architecture</h2>
+<ul>
+<li><strong>AuthN</strong>: 6-digit MPIN verified by backend; on success issue short-lived token (or session); token sent as Bearer (or cookie). No MPIN in logs or client storage beyond secure entry.</li>
+<li><strong>AuthZ</strong>: All student endpoints scoped by authenticated student_id; no cross-student access; role <code>student</code> only in this scope. Teacher material access scoped by student's enrolled class and teacher(s).</li>
+<li><strong>Data protection</strong>: HTTPS only; PII and educational data encrypted at rest; DB access only from data access layer with least privilege; minimal PII in AI prompts (pseudonymous IDs). Teacher material files encrypted at rest in cloud storage.</li>
+<li><strong>File validation</strong>: Teacher uploads validated for file type (PDF, DOCX, TXT only), file size limits, and malware scanning before processing.</li>
+<li><strong>Threat mitigations</strong>: Rate limiting and lockout on MPIN (per Light Architecture R7); input validation and parameterized queries to prevent injection; audit log for sensitive actions; dependency scanning in CI.</li>
+<li><strong>Teacher material access control</strong>: Retrieval service enforces that vector search is scoped to material uploaded by the student's assigned teacher(s) and class. No cross-class material access at repository level.</li>
+</ul>
+<hr />
+<h2 id="11-key-technical-decisions-trade-offs">11. Key Technical Decisions &amp; Trade-offs</h2>
+<table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Trade-off</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Three-tier backend (API -&gt; Business -&gt; Data)</strong></td>
+<td>Clear separation and testability vs. extra hops; chosen for maintainability and safe evolution.</td>
+</tr>
+<tr>
+<td><strong>Single DB (PostgreSQL) with pgvector</strong></td>
+<td>Simplicity and ACID for activities/attendance + vector search in same DB vs. eventual need for dedicated vector DB if scale grows; acceptable for single-region moderate scale.</td>
+</tr>
+<tr>
+<td><strong>REST over HTTPS</strong></td>
+<td>Wide client support and simplicity vs. no built-in real-time; acceptable for poll/SSE-based sync.</td>
+</tr>
+<tr>
+<td><strong>MPIN-only auth</strong></td>
+<td>UX simplicity for students vs. weaker security; mitigated by rate limit, lockout, and optional biometric layer.</td>
+</tr>
+<tr>
+<td><strong>AI stateless + retrieval-augmented</strong></td>
+<td>No student data at provider; grounded answers from teacher material vs. latency of retrieval + LLM call; mitigated by caching and pre-generation.</td>
+</tr>
+<tr>
+<td><strong>Teacher-grounded closed AI (no external knowledge)</strong></td>
+<td>Strict accuracy and trust vs. inability to answer beyond uploaded material; by design -- "Not found" is preferred over hallucination.</td>
+</tr>
+<tr>
+<td><strong>Attendance read-only for student</strong></td>
+<td>Trust and consistency vs. no self-service correction; aligns with Light Architecture.</td>
+</tr>
+<tr>
+<td><strong>pgvector in PostgreSQL vs. dedicated vector DB</strong></td>
+<td>Operational simplicity (one DB) vs. potential performance ceiling; pgvector sufficient for anticipated scale; migration path to dedicated vector DB exists if needed.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="12-risks-mitigations">12. Risks &amp; Mitigations</h2>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>R1: AI hallucination / off-topic</strong></td>
+<td>Retrieval-only prompting; citation-required validation; fail closed on missing citation; "Not found in provided material."</td>
+</tr>
+<tr>
+<td><strong>R2: Over-helping</strong></td>
+<td>Enforce guidance levels in business layer; "full solution" gated; UX reflects help level.</td>
+</tr>
+<tr>
+<td><strong>R3: Grading fairness</strong></td>
+<td>Deterministic scoring for objective items; clear explanations and rubric storage.</td>
+</tr>
+<tr>
+<td><strong>R4: Data privacy (minors)</strong></td>
+<td>Minimize PII to AI; consent flows; encryption; deletion/anonymization path.</td>
+</tr>
+<tr>
+<td><strong>R5: Teacher material quality</strong></td>
+<td>"Not found" response by design; surface coverage metrics to teachers; no fabricated answers.</td>
+</tr>
+<tr>
+<td><strong>R6: Connectivity / latency</strong></td>
+<td>Pre-generate/cache where possible; retry and clear offline/sync states in UI.</td>
+</tr>
+<tr>
+<td><strong>R7: MPIN brute-force</strong></td>
+<td>Rate limiting, lockout, optional device/biometric layer; audit failed attempts.</td>
+</tr>
+<tr>
+<td><strong>R8: Attendance accuracy</strong></td>
+<td>Read-only for student; label period/source; conflict handling in final integration.</td>
+</tr>
+<tr>
+<td><strong>R9: Teacher material access control</strong></td>
+<td>Retrieval scoped by class/teacher; enforced at repository layer; no cross-class access.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="13-system-architecture-diagram-v3-teacher-grounded-ai">13. System Architecture Diagram (v3 -- Teacher-Grounded AI)</h2>
+<pre class="codehilite"><code>┌──────────────────────────────────────────────────────────────────────────────┐
+│                       MINDFORGE STUDENT EXPERIENCE                          │
+│              Architecture v3 -- Teacher-Grounded AI System                  │
+│                          Execution-ready.                                   │
+└──────────────────────────────────────────────────────────────────────────────┘
 
   ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
   │   ANDROID APP    │  │    iOS APP       │  │   DESKTOP WEB    │
@@ -247,62 +722,180 @@
            │    HTTPS / REST     │                     │
            └─────────────────────┼─────────────────────┘
                                  │
-                                 ▼
-  ┌──────────────────────────────────────────────────────────────────────────────┐
-  │                           API LAYER (Gateway)                                 │
-  │  Auth · Rate limit · Validation · Route to Business Layer                     │
-  └──────────────────────────────────────────────────────────────────────────────┘
+                                 v
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │                           API LAYER (Gateway)                            │
+  │  Auth · Rate limit · Validation · Route to Business Layer                │
+  └──────────────────────────────────────────────────────────────────────────┘
                                  │
-                                 ▼
-  ┌──────────────────────────────────────────────────────────────────────────────┐
-  │                    BUSINESS LOGIC LAYER (Middle Layer)                        │
-  │  Auth · Today's plan · Activities · Grading · AI orchestration · Attendance  │
-  │  Doubts · Syllabus context · Sync/conflict · No direct DB access             │
-  └──────────────┬───────────────────────────────────────┬───────────────────────┘
+                                 v
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │                    BUSINESS LOGIC LAYER (Middle Layer)                    │
+  │  Auth · Today's plan · Activities · Grading · Attendance · Doubts       │
+  │                                                                          │
+  │  TEACHER-GROUNDED AI PIPELINE (/modules/activities):                    │
+  │  ┌─────────────────────────────────────────────────────────────────┐    │
+  │  │                                                                 │    │
+  │  │  Teacher Upload                                                 │    │
+  │  │       │                                                         │    │
+  │  │       v                                                         │    │
+  │  │  ┌─────────────┐     ┌──────────────┐     ┌────────────────┐   │    │
+  │  │  │ Teacher      │     │ Content      │     │ Embedding      │   │    │
+  │  │  │ Content Svc  │ --&gt; │ Processing   │ --&gt; │ Generation     │   │    │
+  │  │  │ (upload,     │     │ (PDF parse,  │     │ (vector embed) │   │    │
+  │  │  │  validate)   │     │  chunk)      │     │                │   │    │
+  │  │  └─────────────┘     └──────────────┘     └───────┬────────┘   │    │
+  │  │                                                    │            │    │
+  │  │                                          ┌─────────v────────┐  │    │
+  │  │                                          │ Vector Storage   │  │    │
+  │  │                                          │ (pgvector)       │  │    │
+  │  │                                          └─────────┬────────┘  │    │
+  │  │                                                    │            │    │
+  │  │  Student Question                                  │            │    │
+  │  │       │                                            │            │    │
+  │  │       v                                            │            │    │
+  │  │  ┌──────────────┐     ┌────────────────┐          │            │    │
+  │  │  │ Retrieval    │ &lt;---│ Vector Search  │ &lt;--------┘            │    │
+  │  │  │ Service      │     │ (top-K chunks) │                       │    │
+  │  │  └──────┬───────┘     └────────────────┘                       │    │
+  │  │         │                                                       │    │
+  │  │         v                                                       │    │
+  │  │  ┌────────────────┐                                            │    │
+  │  │  │ AI Orchestrator│ -- prompt with retrieved chunks --&gt;        │    │
+  │  │  │ Service        │                                  │         │    │
+  │  │  └──────┬─────────┘                                  │         │    │
+  │  │         │                                            │         │    │
+  │  │         v                                            v         │    │
+  │  │  ┌───────────────┐                      ┌──────────────────┐  │    │
+  │  │  │ Response      │                      │  AI Provider     │  │    │
+  │  │  │ Validator     │ &lt;--- AI response --- │  (external LLM)  │  │    │
+  │  │  │ (citation     │                      └──────────────────┘  │    │
+  │  │  │  check, fail  │                                            │    │
+  │  │  │  closed)      │                                            │    │
+  │  │  └──────┬────────┘                                            │    │
+  │  │         │                                                      │    │
+  │  │    valid? ─── NO ──&gt; &quot;Not found in provided material.&quot;        │    │
+  │  │         │                                                      │    │
+  │  │        YES                                                     │    │
+  │  │         │                                                      │    │
+  │  │         v                                                      │    │
+  │  │  Return grounded response with chunk citation                  │    │
+  │  │                                                                 │    │
+  │  └─────────────────────────────────────────────────────────────────┘    │
+  │                                                                          │
+  │  Sync/conflict · No direct DB access                                    │
+  └──────────────┬───────────────────────────────────────┬──────────────────┘
                  │                                       │
                  │                                       │ HTTP
-                 ▼                                       ▼
-  ┌──────────────────────────────┐    ┌─────────────────────────────────────────┐
-  │  DATA ACCESS LAYER          │    │  EXTERNAL                                │
-  │  (DB interaction only)      │    │  · AI provider (stateless)               │
-  │  Repositories / DAOs        │    │  · NotebookLM (read-only feed)           │
-  └──────────────┬───────────────┘    └─────────────────────────────────────────┘
+                 v                                       v
+  ┌──────────────────────────────┐    ┌──────────────────────────────────────┐
+  │  DATA ACCESS LAYER           │    │  EXTERNAL                            │
+  │  (DB interaction only)       │    │  · AI provider (stateless LLM)      │
+  │  Repositories / DAOs         │    │  · Embedding model (stateless)      │
+  │                              │    │                                      │
+  │  Existing:                   │    │  NO external knowledge services.    │
+  │  · student.repository        │    │  NO NotebookLM.                     │
+  │  · activity.repository       │    └──────────────────────────────────────┘
+  │  · question.repository       │
+  │  · response.repository       │
+  │  · attendance.repository     │
+  │  · doubt.repository          │
+  │  · session.repository        │
+  │  · audit-log.repository      │
+  │  · syllabus.repository       │
+  │                              │
+  │  New (v3):                   │
+  │  · teacher-content.repo      │
+  │  · embeddings.repo           │
+  │  · ai-usage.repo             │
+  └──────────────┬───────────────┘
                  │
-                 ▼
-  ┌──────────────────────────────┐    ┌─────────────────────────────────────────┐
-  │  DATABASE                    │    │  REDIS (optional)                       │
-  │  PostgreSQL (or MySQL)       │    │  Sessions · Rate limits · Cache          │
-  │  students · syllabus ·      │    └─────────────────────────────────────────┘
-  │  activities · responses ·   │
-  │  attendance · doubts ·      │
-  │  sessions · audit           │
+                 v
+  ┌──────────────────────────────┐    ┌──────────────────────────────────────┐
+  │  DATABASE                    │    │  CLOUD OBJECT STORAGE                │
+  │  PostgreSQL + pgvector       │    │  Teacher material files (PDFs, etc) │
+  │                              │    │  Encrypted at rest                   │
+  │  Existing tables:            │    │  Access: backend-only               │
+  │  · students                  │    └──────────────────────────────────────┘
+  │  · syllabus_metadata         │
+  │  · activities                │    ┌──────────────────────────────────────┐
+  │  · questions                 │    │  REDIS (optional)                    │
+  │  · responses                 │    │  Sessions · Rate limits · Cache      │
+  │  · attendance                │    └──────────────────────────────────────┘
+  │  · doubt_threads             │
+  │  · sessions                  │
+  │  · audit_log                 │
+  │                              │
+  │  New tables (v3):            │
+  │  · teacher_materials         │
+  │  · teacher_material_chunks   │
+  │    (with pgvector embeddings)│
+  │  · ai_usage_logs             │
+  │                              │
+  │  Removed (v3):               │
+  │  · teaching_feed (deleted)   │
   └──────────────────────────────┘
 
-  NAVIGATION (UI LAYER):  Login → Home → Activity | Attendance | Doubts | Profile
-                         Activity → Results → Home
-  UX LOCKED: No change to screens, flows, or features per approved UX spec.</code></pre>
+  NAVIGATION (UI LAYER):  Login -&gt; Home -&gt; Activity | Attendance | Doubts | Profile
+                          Activity -&gt; Results -&gt; Home
+  UX LOCKED: No change to screens, flows, or features per approved UX spec.
+</code></pre>
 
-      <h2>13. Approval Decision</h2>
-      <p class="approved">Architecture Approved — downstream work may proceed.</p>
-      <p>This technical architecture is execution-ready and respects Light Architecture v2 and the approved UX Specification. No UX or feature additions.</p>
+<hr />
+<h2 id="14-approval-decision">14. Approval Decision</h2>
+<p><strong>Architecture Approved -- downstream work may proceed.</strong></p>
+<p>This technical architecture (v3 -- Teacher-Grounded AI System) is execution-ready and respects the Light Architecture v3 and the approved UX Specification. The NotebookLM dependency has been fully replaced by the teacher content ingestion and retrieval pipeline. Frontend (UI/navigational layer), backend (API, business logic with new teacher-grounded AI services, data access with new repositories), database (existing tables preserved, new tables added, teaching_feed removed), API endpoints (unchanged contracts), error handling, deployment assumptions, and risks are defined. No UX or feature additions are introduced.</p>
+<p><strong>Confirmation</strong>:<br />
+- Modular rules preserved: Controllers = HTTP only, Services = business logic only, Repositories = DB only, no cross-module DB access.<br />
+- Security baseline preserved: AuthN/AuthZ unchanged, encryption unchanged, rate limiting unchanged, audit logging unchanged. Teacher material access control added.<br />
+- API contracts unchanged: All existing endpoints remain identical. No new student-facing endpoints added.</p>
+<hr />
+<h2 id="15-artifacts-to-save">15. Artifacts to Save</h2>
+<ul>
+<li><strong>Primary</strong>: <code>docs/architecture/final/Mindforge_Student_Experience_Technical_Architecture_Final.md</code></li>
+<li><strong>Export</strong>: <code>docs/architecture/final/Mindforge_Student_Experience_Technical_Architecture_Final.html</code></li>
+</ul>
+<hr />
+<h2 id="standard-handoff-to-planner-agent">STANDARD HANDOFF -- To Planner Agent</h2>
+<pre class="codehilite"><code>============================================
+HANDOFF: Architect AI Agent (Final Mode) -&gt; Planner Agent
+============================================
 
-      <h2>14. Artifacts to Save</h2>
-      <ul>
-        <li><strong>Primary:</strong> docs/architecture/final/Mindforge_Student_Experience_Technical_Architecture_Final.md</li>
-        <li><strong>Export:</strong> docs/architecture/final/Mindforge_Student_Experience_Technical_Architecture_Final.html</li>
-      </ul>
+PROJECT: Mindforge Student Experience
 
-      <h2>STANDARD HANDOFF – To Planner Agent</h2>
-      <div class="handoff">
-        <p><strong>PROJECT:</strong> Mindforge Student Experience</p>
-        <p><strong>ARTIFACT SOURCE:</strong> docs/architecture/final/Mindforge_Student_Experience_Technical_Architecture_Final.md</p>
-        <p><strong>ARCHITECTURE STATUS:</strong> Approved — downstream work may proceed.</p>
-        <p><strong>WHAT THE PLANNER RECEIVES:</strong> Frontend (UI/nav + API client); Backend (API, Business, Data layers); Database (schema/migrations); API endpoints; Error handling; Deployment; Risks/trade-offs.</p>
-        <p><strong>CONSTRAINTS:</strong> UX locked; Light Architecture v2. No feature additions.</p>
-        <p><strong>PLANNER NEXT STEPS:</strong> Produce execution plan (phases/sprints); allocate Frontend, Backend, DB, Integration, DevOps; no UX or feature changes.</p>
-        <p><strong>DEPENDENCIES:</strong> Light Architecture v2; UX Design Specification.</p>
-        <p><strong>Signature:</strong> Architect AI Agent (Final Mode) – Mindforge Student Experience</p>
-      </div>
-    </div>
-  </body>
+ARTIFACT SOURCE: docs/architecture/final/Mindforge_Student_Experience_Technical_Architecture_Final.md
+
+ARCHITECTURE STATUS: Approved (v3 -- Teacher-Grounded AI System) -- downstream work may proceed.
+
+WHAT THE PLANNER RECEIVES:
+- Frontend: UI / Navigational layer (Android, iOS, Web) with routes/screens per UX spec; API client and sync handling. UNCHANGED.
+- Backend: Three-tier -- API layer, Business logic layer (middle layer) with NEW teacher-grounded AI services (teacher-content.service, retrieval.service, ai-orchestrator.service, response-validator.service), Data access layer with NEW repositories (teacher-content.repository, embeddings.repository, ai-usage.repository). No direct DB access from business layer.
+- Database: Relational (PostgreSQL + pgvector); existing tables preserved; NEW tables: teacher_materials, teacher_material_chunks, ai_usage_logs; REMOVED: teaching_feed.
+- API endpoints: UNCHANGED. Auth (MPIN verify, lockout, forgot-mpin); student today, activities (get, respond, feedback, pause), results, attendance, doubts, syllabus tree, profile, sync status. All go through API -&gt; Business -&gt; Data.
+- AI Governance: Strict retrieval-only prompting; citation required; fail closed; no external knowledge.
+- Error handling: Consistent API error shape; domain exceptions in business layer; AI fails closed; client-side patterns per UX.
+- Deployment: Single region (India), HTTPS, managed DB with pgvector, cloud object storage for teacher files, embedding worker, secrets in vault, CI/CD, monitoring with AI usage metrics.
+- Risks and trade-offs: Documented with mitigations (teacher material quality replaces NotebookLM feed quality risk).
+
+CONSTRAINTS (DO NOT BREAK):
+- UX is locked (docs/Mindforge_Student_Experience_UX_Design_Specification.md). No screen, flow, or feature changes.
+- Light Architecture v3 is the product/constraint source (teacher-grounded AI, 6-digit MPIN, multi-platform sync, attendance + calendar, AI behavior, data sensitivity).
+- Modular structure: Controllers = HTTP only, Services = business logic only, Repositories = DB only. No cross-module DB access.
+
+PLANNER NEXT STEPS:
+1. Consume this technical architecture and the UX spec to produce execution plan (phases, sprints, or work streams).
+2. Sprint 8 must be updated to: Teacher-Grounded AI Integration (replacing NotebookLM).
+3. Do not add features or change UX; only plan implementation of the approved design.
+
+BLOCKERS: None.
+
+DEPENDENCIES:
+- Reads: docs/Mindforge_Student_Experience_Light_Architecture_v2.md (v3)
+- Reads: docs/Mindforge_Student_Experience_UX_Design_Specification.md
+
+============================================
+Signature: Architect AI Agent (Final Mode, v3) -- Mindforge Student Experience
+============================================
+</code></pre>
+</body>
 </html>

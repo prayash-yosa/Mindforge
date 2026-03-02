@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Mindforge Teacher App — UX Design Specification (v1)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5fbef;
+        --panel: #ffffff;
+        --border: #d1d9cf;
+        --text: #503d42;
+        --muted: #6b5a5e;
+        --accent: #748b75;
+        --accent-soft: #e2ebe0;
+        --accent-dark: #5a6b5a;
+        --code-bg: #111827;
+        --code-border: #1f2937;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        --sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 2rem 1rem 3rem;
+        font-family: var(--sans);
+        background: radial-gradient(circle at top, #e2ebe0 0, #f5fbef 40%, #f0f5ec 100%);
+        color: var(--text);
+      }
+
+      .page {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: var(--panel);
+        border-radius: 16px;
+        box-shadow:
+          0 18px 40px rgba(15, 23, 42, 0.12),
+          0 0 0 1px rgba(148, 163, 184, 0.25);
+        padding: 2.25rem 2.4rem 2.6rem;
+      }
+
+      header {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 1.5rem;
+        margin-bottom: 1.75rem;
+      }
+
+      h1 {
+        margin: 0 0 0.4rem;
+        font-size: 1.9rem;
+        letter-spacing: -0.03em;
+        color: var(--accent-dark);
+      }
+
+      h2 {
+        margin-top: 2.1rem;
+        margin-bottom: 0.75rem;
+        font-size: 1.25rem;
+        border-bottom: 2px solid var(--accent-soft);
+        padding-bottom: 0.45rem;
+        letter-spacing: -0.01em;
+        color: var(--accent-dark);
+      }
+
+      h3 {
+        margin-top: 1.5rem;
+        margin-bottom: 0.45rem;
+        font-size: 1.05rem;
+        color: var(--text);
+      }
+
+      p {
+        margin: 0.35rem 0 0.8rem;
+        line-height: 1.6;
+      }
+
+      ul,
+      ol {
+        margin: 0.35rem 0 0.9rem 1.4rem;
+        padding: 0;
+      }
+
+      li {
+        margin: 0.2rem 0;
+        line-height: 1.55;
+      }
+
+      .meta {
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.15rem 0.7rem;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent-dark);
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .toc {
+        background: #f7faf7;
+        border-radius: 10px;
+        padding: 1rem 1.2rem;
+        border: 1px solid var(--border);
+        margin-bottom: 1.4rem;
+      }
+
+      .toc h4 {
+        margin: 0 0 0.45rem;
+        font-size: 0.92rem;
+        color: var(--muted);
+      }
+
+      .toc ul {
+        margin: 0;
+        padding-left: 1.1rem;
+      }
+
+      .toc a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      .toc a:hover {
+        text-decoration: underline;
+      }
+
+      code {
+        font-family: var(--mono);
+        font-size: 0.88em;
+        background: #eef2f0;
+        padding: 0.05rem 0.3rem;
+        border-radius: 4px;
+      }
+
+      pre {
+        margin: 0.75rem 0 1rem;
+        padding: 0.9rem 1.1rem;
+        border-radius: 10px;
+        background: var(--code-bg);
+        color: #e5e7eb;
+        border: 1px solid var(--code-border);
+        overflow-x: auto;
+        font-size: 0.82rem;
+        line-height: 1.5;
+      }
+
+      pre code {
+        background: transparent;
+        padding: 0;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.55rem 0 1.3rem;
+        font-size: 0.9rem;
+      }
+
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 0.45rem 0.55rem;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #f1f5f2;
+        font-weight: 600;
+      }
+
+      .section-intro {
+        font-size: 0.95rem;
+        color: var(--muted);
+        margin-bottom: 0.45rem;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: minmax(0, 2.1fr) minmax(0, 2fr);
+        gap: 1.5rem;
+        align-items: flex-start;
+        margin: 0.8rem 0 1.6rem;
+      }
+
+      .screen-card {
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: linear-gradient(135deg, #ffffff 0, #f7faf7 100%);
+        padding: 1rem 1.2rem 1.1rem;
+      }
+
+      .screen-title {
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+        color: var(--accent-dark);
+      }
+
+      .screen-meta {
+        font-size: 0.83rem;
+        color: var(--muted);
+        margin-bottom: 0.7rem;
+      }
+
+      .screenshot-frame {
+        border-radius: 18px;
+        padding: 0.7rem;
+        background: radial-gradient(circle at top, #e2ebe0 0, #cbd5c5 40%, #9ca89a 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .screenshot-inner {
+        border-radius: 18px;
+        overflow: hidden;
+        background: #000;
+        box-shadow:
+          0 18px 35px rgba(15, 23, 42, 0.45),
+          0 0 0 1px rgba(15, 23, 42, 0.4);
+        max-width: 360px;
+      }
+
+      .screenshot-inner img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .hint {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-top: 0.35rem;
+      }
+
+      .handoff {
+        margin-top: 2.1rem;
+        border-radius: 12px;
+        padding: 1rem 1.2rem;
+        border: 1px dashed #cbd5c5;
+        background: #f7faf7;
+        font-family: var(--mono);
+        font-size: 0.82rem;
+        white-space: pre-wrap;
+      }
+
+      @media (max-width: 768px) {
+        .page {
+          padding: 1.6rem 1.3rem 2.2rem;
+        }
+        .grid-2 {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header>
+        <div class="tag">UX Design Spec</div>
+        <h1>Mindforge Teacher App — UX Design Specification (v1)</h1>
+        <div class="meta">
+          Artifact: <code>Mindforge_Teacher_App_UX_Design_Specification_v1</code><br />
+          Architecture source:
+          <code>docs/architecture/teacher/Mindforge_Teacher_App_Architecture_v1.md</code><br />
+          Images: <code>docs/architecture/teacher/images/</code>
+        </div>
+      </header>
+
+      <nav class="toc">
+        <h4>Contents</h4>
+        <ul>
+          <li><a href="#overview">1. UX System Overview</a></li>
+          <li><a href="#flows">2. Key User Flows</a></li>
+          <li><a href="#navigation">3. Navigation Map</a></li>
+          <li><a href="#screens">4. Screen Specifications</a></li>
+          <li><a href="#accessibility">5. Accessibility Notes</a></li>
+          <li><a href="#handoff">Standard Handoff</a></li>
+        </ul>
+      </nav>
+
+      <section id="overview">
+        <h2>1. UX System Overview</h2>
+        <p class="section-intro">
+          Web-first teacher experience with responsive mobile layouts, aligned with the existing Mindforge brand and student app.
+        </p>
+        <h3>UX Principles</h3>
+        <ul>
+          <li><strong>Teacher-first, time-respectful</strong> – attendance and test flows are 1–2 clicks.</li>
+          <li><strong>Web-first, mobile-responsible</strong> – primary layout is desktop; key flows work on phone.</li>
+          <li><strong>Data clarity over decoration</strong> – numeric KPIs and trends are easy to scan.</li>
+          <li><strong>Consistency with Student app</strong> – same sage-green / cream palette and tone.</li>
+          <li><strong>AI as assistant</strong> – teacher keeps control over syllabus and assessments.</li>
+        </ul>
+      </section>
+
+      <section id="flows">
+        <h2>2. Key User Flows</h2>
+
+        <h3>2.1 Take Attendance for a Class Session</h3>
+        <p class="section-intro">
+          Mark attendance quickly for each class, with default Present and edit window.
+        </p>
+        <pre><code>Desktop:
+Dashboard → Today’s timetable → "Take attendance"
+Classes &amp; Attendance:
+  • Select Class 8A • Math and date
+  • All students default Present
+  • Toggle Absent where needed; add notes
+  • Save attendance → success toast
+  • Optional: open calendar view
+
+Mobile:
+Dashboard (phone) → "Take attendance" card
+  • Scrollable Present/Absent list
+  • Save attendance → "View calendar"</code></pre>
+
+        <h3>2.2 Upload Syllabus and Inspect AI Concepts</h3>
+        <pre><code>Sidebar → Syllabus
+  • Choose class/subject
+  • Upload PDF/Image
+  • See upload status (Processing/Ready/Failed)
+  • When Ready: browse Extracted Concepts
+       Chapters → Topics → details:
+       - Summary, Learning objectives
+       - Flags (Has numericals: Yes/No)</code></pre>
+
+        <h3>2.3 Configure Tests (Online &amp; Offline)</h3>
+        <pre><code>Sidebar → Tests
+
+Online Daily Quiz:
+  • Select Class / Subject / Chapter
+  • Set question count &amp; marks per question
+  • "Enforce NO numericals (online)" = ON
+  • Preview generated objective questions
+  • Save &amp; Publish
+
+Offline Printable Test:
+  • Define question mix, marks, duration
+  • Generate PDFs:
+       - Student Paper
+       - Teacher Key (with solutions)</code></pre>
+
+        <h3>2.4 View Results &amp; Analytics</h3>
+        <pre><code>Sidebar → Results &amp; Analytics
+  • Pick Class, Subject, Period
+  • View KPIs: Average Score, Attendance %, etc.
+  • Inspect trend charts
+  • Scroll to "Students Needing Attention"
+  • Open student details from table</code></pre>
+      </section>
+
+      <section id="navigation">
+        <h2>3. Navigation Map</h2>
+        <pre><code>Desktop Sidebar
+───────────────
+Dashboard
+Classes &amp; Attendance
+Syllabus
+Tests
+Results &amp; Analytics
+Alerts / Messages
+
+Mobile Bottom Nav
+─────────────────
+Dashboard · Classes · Syllabus · Tests · Analytics · Alerts</code></pre>
+      </section>
+
+      <section id="screens">
+        <h2>4. Screen Specifications (Desktop + Mobile)</h2>
+
+        <div class="grid-2">
+          <div>
+            <h3>4.1 Dashboard</h3>
+            <p class="section-intro">Overview of today’s workload and issues.</p>
+            <ul>
+              <li><strong>KPI cards</strong>: Today’s Classes, Attendance issues, Pending test evaluations.</li>
+              <li><strong>Today’s timetable</strong>: upcoming classes with <em>Take attendance</em> actions.</li>
+              <li><strong>Class attendance summary</strong>: per-class donuts (Present/Absent %).</li>
+              <li><strong>Recent alerts</strong>: absence streaks, missed tests, auto-submits.</li>
+            </ul>
+          </div>
+          <div class="screen-card">
+            <div class="screen-title">Dashboard — Desktop &amp; Mobile</div>
+            <div class="screen-meta">Desktop overview plus mobile-friendly stacked layout.</div>
+            <div class="screenshot-frame">
+              <div class="screenshot-inner">
+                <img src="images/teacher-dashboard.png" alt="Teacher dashboard desktop UI" />
+              </div>
+            </div>
+            <p class="hint">Desktop: <code>images/teacher-dashboard.png</code></p>
+            <div class="screenshot-frame" style="margin-top: 0.8rem;">
+              <div class="screenshot-inner" style="max-width: 260px;">
+                <img src="images/teacher-mobile-dashboard.png" alt="Teacher dashboard mobile UI" />
+              </div>
+            </div>
+            <p class="hint">Mobile: <code>images/teacher-mobile-dashboard.png</code></p>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <h3>4.2 Classes &amp; Attendance</h3>
+            <p class="section-intro">Per-session attendance with fast Present/Absent toggles.</p>
+            <ul>
+              <li>Class/date/session selection row with edit window label.</li>
+              <li>Summary chips: Present count, Absent count, Editable until.</li>
+              <li>Student table or list with Present/Absent pill and Notes field.</li>
+              <li>Mini calendar for this class; button to open full attendance calendar.</li>
+              <li>Primary actions: Save attendance, Mark all present, Undo last change.</li>
+            </ul>
+          </div>
+          <div class="screen-card">
+            <div class="screen-title">Classes &amp; Attendance — Desktop &amp; Mobile</div>
+            <div class="screen-meta">Default Present; thumb-friendly Absent toggles.</div>
+            <div class="screenshot-frame">
+              <div class="screenshot-inner">
+                <img src="images/teacher-attendance.png" alt="Teacher attendance desktop UI" />
+              </div>
+            </div>
+            <p class="hint">Desktop: <code>images/teacher-attendance.png</code></p>
+            <div class="screenshot-frame" style="margin-top: 0.8rem;">
+              <div class="screenshot-inner" style="max-width: 260px;">
+                <img src="images/teacher-mobile-attendance.png" alt="Teacher attendance mobile UI" />
+              </div>
+            </div>
+            <p class="hint">Mobile: <code>images/teacher-mobile-attendance.png</code></p>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <h3>4.3 Syllabus Upload &amp; Concepts</h3>
+            <p class="section-intro">Turn raw syllabus documents into structured lessons.</p>
+            <ul>
+              <li>Upload dropzone with supported formats (PDF/JPEG/PNG).</li>
+              <li>Recent uploads pane with Processing / Ready / Failed statuses.</li>
+              <li>Extracted Concepts list: Chapters and Topics with expand/collapse.</li>
+              <li>Topic detail panel: summary text, learning objectives, flags (Has numericals).</li>
+            </ul>
+          </div>
+          <div class="screen-card">
+            <div class="screen-title">Syllabus Upload — Desktop</div>
+            <div class="screen-meta">Upload + AI-extracted concept browser.</div>
+            <div class="screenshot-frame">
+              <div class="screenshot-inner">
+                <img src="images/teacher-syllabus.png" alt="Teacher syllabus upload desktop UI" />
+              </div>
+            </div>
+            <p class="hint">Desktop: <code>images/teacher-syllabus.png</code></p>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <h3>4.4 Tests (Online &amp; Offline)</h3>
+            <p class="section-intro">Configure daily quizzes and printable tests from syllabus.</p>
+            <ul>
+              <li><strong>Online Daily Quiz</strong>: objective-only, “Enforce NO numericals (online)” toggle.</li>
+              <li>Quiz details form: class/subject/chapter, question count, marks.</li>
+              <li>Question preview panel listing MCQ/T&amp;F/FIB items.</li>
+              <li><strong>Offline Printable Test</strong>: controls for question mix, marks, duration, PDF generation.</li>
+            </ul>
+          </div>
+          <div class="screen-card">
+            <div class="screen-title">Tests — Desktop &amp; Mobile</div>
+            <div class="screen-meta">Online quiz and offline printable test builder.</div>
+            <div class="screenshot-frame">
+              <div class="screenshot-inner">
+                <img src="images/teacher-tests.png" alt="Teacher test builder desktop UI" />
+              </div>
+            </div>
+            <p class="hint">Desktop: <code>images/teacher-tests.png</code></p>
+            <div class="screenshot-frame" style="margin-top: 0.8rem;">
+              <div class="screenshot-inner" style="max-width: 260px;">
+                <img src="images/teacher-mobile-tests.png" alt="Teacher online quiz mobile UI" />
+              </div>
+            </div>
+            <p class="hint">Mobile: <code>images/teacher-mobile-tests.png</code></p>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <h3>4.5 Results &amp; Analytics</h3>
+            <p class="section-intro">Summarise performance and attendance; highlight at-risk students.</p>
+            <ul>
+              <li>Filter bar: Class, Subject, Period.</li>
+              <li>KPI cards for average score, attendance %, students at risk, tests this week.</li>
+              <li>Charts: score over time and attendance by week.</li>
+              <li>“Students Needing Attention” table with weak topics and quick actions.</li>
+            </ul>
+          </div>
+          <div class="screen-card">
+            <div class="screen-title">Results &amp; Analytics — Desktop</div>
+            <div class="screen-meta">Score and attendance trends plus at-risk list.</div>
+            <div class="screenshot-frame">
+              <div class="screenshot-inner">
+                <img src="images/teacher-analytics.png" alt="Teacher results & analytics desktop UI" />
+              </div>
+            </div>
+            <p class="hint">Desktop: <code>images/teacher-analytics.png</code></p>
+          </div>
+        </div>
+      </section>
+
+      <section id="accessibility">
+        <h2>5. Accessibility Notes</h2>
+        <ul>
+          <li><strong>Keyboard navigation</strong>: all sidebar items and primary actions must be operable by keyboard.</li>
+          <li><strong>Attendance table</strong>: clear focus states; support quick toggling via keyboard.</li>
+          <li><strong>Color contrast</strong>: maintain WCAG 2.1 AA contrast for text and UI elements.</li>
+          <li><strong>Status messages</strong>: use <code>role="status"</code> / <code>role="alert"</code> for save and error states.</li>
+          <li><strong>Charts</strong>: provide text summaries (“Average score 82%, up 2% from last month”).</li>
+        </ul>
+      </section>
+
+      <section id="handoff">
+        <h2>STANDARD HANDOFF</h2>
+        <div class="handoff">============================================
+HANDOFF: UX/UI Designer Agent → Planner Agent → Developer Agent
+============================================
+
+PROJECT: Mindforge Teacher App
+
+DESKTOP SCREENS:
+- teacher-dashboard.png
+- teacher-attendance.png
+- teacher-syllabus.png
+- teacher-tests.png
+- teacher-analytics.png
+
+MOBILE SCREENS:
+- teacher-mobile-dashboard.png
+- teacher-mobile-attendance.png
+- teacher-mobile-tests.png
+
+KEY FLOWS:
+1. Classes &amp; Attendance with default Present and edit window
+2. Syllabus upload + AI concepts browser
+3. Test builder (Online Daily Quiz: no numericals; Offline Printable)
+4. Results &amp; Analytics dashboards
+5. Alerts for attendance and tests
+
+CONSTRAINTS HONORED:
+- Web-first, responsive to tablet/phone
+- Online quiz: objective only, numericals rejected in UI contract
+- Attendance: default Present, quick marking of absentees, clear edit window messaging
+
+NEXT STEPS:
+- Planner Agent: break UX into implementation tasks for Teacher app
+- Developer Agent: implement routes and components in apps/teacher/frontend
+- Wire to Teacher backend APIs via Gateway as per architecture spec
+
+============================================</div>
+      </section>
+    </main>
+  </body>
+</html>
+

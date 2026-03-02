@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task 8.7 — AI Usage Logging</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #333; }
+    h1 { color: #1a1a1a; border-bottom: 2px solid #4a7c59; padding-bottom: 0.5rem; }
+    h2 { color: #4a7c59; margin-top: 2rem; }
+    code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+    pre { background: #f4f4f4; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+    pre code { background: none; padding: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+    th { background: #4a7c59; color: white; }
+    ul { padding-left: 1.5rem; }
+    .meta { color: #666; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <h1>Task 8.7 — AI Usage Logging</h1>
+  <p class="meta"><strong>Sprint</strong>: 8 — Teacher-Grounded AI Integration | <strong>Status</strong>: Done | <strong>Date</strong>: 2026-02-20</p>
+
+  <h2>Overview</h2>
+  <p>Logs all AI usage for the doubt pipeline. AiUsageLogEntity captures student_id, feature_type, model, tokens (prompt+completion+total), latency_ms, retrieval stats, response_status (accepted/rejected/fallback), and rejection_reason. AiUsageRepository supports aggregation queries (per student, rejection rate). AiUsageLoggerService provides a non-blocking wrapper. All doubt pipeline AI calls log usage.</p>
+
+  <h2>Implementation</h2>
+
+  <h3>AiUsageLogEntity</h3>
+  <table>
+    <thead><tr><th>Field</th><th>Type</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>student_id</td><td>string</td><td>Student identifier</td></tr>
+      <tr><td>feature_type</td><td>string</td><td>e.g. doubt</td></tr>
+      <tr><td>model</td><td>string</td><td>Model used</td></tr>
+      <tr><td>tokens_prompt</td><td>number</td><td>Input tokens</td></tr>
+      <tr><td>tokens_completion</td><td>number</td><td>Output tokens</td></tr>
+      <tr><td>tokens_total</td><td>number</td><td>Total tokens</td></tr>
+      <tr><td>latency_ms</td><td>number</td><td>API latency</td></tr>
+      <tr><td>retrieval_chunk_count</td><td>number</td><td>Chunks retrieved</td></tr>
+      <tr><td>response_status</td><td>enum</td><td>accepted / rejected / fallback</td></tr>
+      <tr><td>rejection_reason</td><td>string?</td><td>If rejected</td></tr>
+    </tbody>
+  </table>
+
+  <h3>AiUsageRepository</h3>
+  <ul>
+    <li>Persist usage records</li>
+    <li>Aggregation queries: per-student usage, rejection rate over time</li>
+  </ul>
+
+  <h3>AiUsageLoggerService</h3>
+  <ul>
+    <li><strong>Non-blocking</strong>: Logging does not block the request path</li>
+    <li>Wraps AI calls; captures timing, tokens, retrieval stats</li>
+    <li>Records response_status based on validation outcome</li>
+  </ul>
+
+  <h3>Integration</h3>
+  <p>All doubt pipeline AI calls (RetrievalService embedding, AiOrchestrator LLM) log via AiUsageLoggerService. Response status set from ResponseValidator result (accepted/rejected) or fallback when "Not found in provided material." returned.</p>
+
+  <h2>Files Created/Modified</h2>
+  <ul>
+    <li><code>ai-usage-log.entity.ts</code> — AiUsageLogEntity</li>
+    <li><code>ai-usage.repository.ts</code> — AiUsageRepository</li>
+    <li><code>ai-usage-logger.service.ts</code> — AiUsageLoggerService</li>
+    <li><code>doubt.service.ts</code> — Integrates logger into doubt flow</li>
+  </ul>
+
+  <h2>Architecture</h2>
+  <p>Supports cost tracking, quality monitoring (rejection rate), and compliance. Per Architecture §5.1: ai_usage_logs table. Data used for analytics and alerting on high rejection rates.</p>
+
+  <h2>Testing</h2>
+  <ol>
+    <li>Submit doubt; verify ai_usage_logs row created with correct student_id, tokens, latency</li>
+    <li>Trigger validation rejection; verify response_status=rejected, rejection_reason populated</li>
+    <li>Trigger "Not found in provided material." (empty retrieval); verify response_status=fallback</li>
+    <li>Run aggregation query; verify per-student and rejection-rate metrics</li>
+  </ol>
+</body>
+</html>

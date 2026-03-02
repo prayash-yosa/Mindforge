@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mindforge Student Experience – Light Architecture (v2)</title>
+  <title>Mindforge Student Experience -- Light Architecture (v3)</title>
   <style>
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -34,7 +34,7 @@
     p {
       margin: 0.5rem 0;
     }
-    ul {
+    ul, ol {
       padding-left: 1.5rem;
     }
     li {
@@ -43,25 +43,48 @@
     strong {
       font-weight: 600;
     }
-    .meta {
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
       font-size: 0.9rem;
-      color: #4b5563;
-      margin-bottom: 1.5rem;
     }
-    .section-label {
-      text-transform: uppercase;
-      font-size: 0.75rem;
-      letter-spacing: 0.06em;
-      color: #6b7280;
-      margin-bottom: 0.25rem;
+    th, td {
+      border: 1px solid #d1d5db;
+      padding: 0.5rem 0.75rem;
+      text-align: left;
     }
-    .note {
-      font-size: 0.9rem;
-      color: #374151;
-      padding: 0.75rem 1rem;
-      background: #e5e7eb;
+    th {
+      background: #f3f4f6;
+      font-weight: 600;
+    }
+    tr:nth-child(even) {
+      background: #f9fafb;
+    }
+    pre {
+      background: #1f2937;
+      color: #e5e7eb;
+      padding: 1rem;
       border-radius: 0.5rem;
-      margin-bottom: 1.5rem;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.9em;
+    }
+    blockquote {
+      border-left: 4px solid #6366f1;
+      margin: 1rem 0;
+      padding: 0.5rem 1rem;
+      background: #eef2ff;
+      color: #374151;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 2rem 0;
     }
     .handoff-block {
       margin-top: 2rem;
@@ -70,348 +93,593 @@
       background: #eef2ff;
       border: 1px solid #e0e7ff;
     }
-    .handoff-block h2 {
-      border-bottom: none;
-      margin-top: 0;
-    }
-    code {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 0.9em;
-      background: #e5e7eb;
-      padding: 0.1rem 0.25rem;
-      border-radius: 0.25rem;
-    }
+
   </style>
 </head>
 <body>
-  <header>
-    <p class="section-label">Architecture Artifact</p>
-    <h1>Mindforge Student Experience – Light Architecture (v2)</h1>
-    <p class="meta">
-      <strong>Artifact name:</strong> Mindforge_Student_Experience_Light_Architecture_v2<br />
-      <strong>Suggested file path:</strong> docs/architecture/light/Mindforge_Student_Experience_Light_Architecture_v2.md
-    </p>
-    <p class="meta">
-      <strong>Project Name:</strong> Mindforge Student Experience<br />
-      <strong>Idea Source:</strong> docs/Mindforge_Student_Experience.pdf (Student experience definition for Class 6–12, ICSE/CBSE/State Board)
-    </p>
-    <div class="note">
-      <strong>v2 updates:</strong> (1) 6-digit MPIN-only login model for students. (2) Explicit multi-platform support with Android app, iOS app, and desktop browser all kept in sync via a shared backend.
-    </div>
-  </header>
+<h1 id="mindforge-student-experience-light-architecture-v3">Mindforge Student Experience -- Light Architecture (v3)</h1>
+<p><strong>Artifact name</strong>: Mindforge_Student_Experience_Light_Architecture_v3<br />
+<strong>Suggested file path</strong>: docs/architecture/light/Mindforge_Student_Experience_Light_Architecture_v3.md  </p>
+<p><strong>Project Name</strong>: Mindforge Student Experience<br />
+<strong>Idea Source</strong>: docs/Mindforge_Student_Experience.pdf (Student experience definition for Class 6-12, ICSE/CBSE/State Board)</p>
+<blockquote>
+<p>This v3 artifact updates v2 with:<br />
+- <strong>Removal of NotebookLM dependency</strong>. The system no longer relies on any external knowledge service for content.<br />
+- <strong>Teacher-Grounded Closed AI model</strong>: All AI responses are sourced exclusively from teacher-uploaded material (PDFs, notes). If the answer is not found, the system responds: <em>"Not found in provided material."</em><br />
+- <strong>Teacher Content Ingestion Flow</strong>: Teachers upload study material -&gt; content is chunked -&gt; embeddings generated -&gt; stored in vector storage -&gt; retrieved at query time.<br />
+- <strong>Strict closed-domain AI governance</strong>: No external knowledge, no hallucination, no general internet answers.</p>
+<p>Previous v2 changes preserved:<br />
+- A <strong>6-digit MPIN-only login</strong> model.<br />
+- Explicit <strong>multi-platform support</strong>: Android app, iOS app, and desktop browser, all kept in sync.<br />
+- <strong>Attendance with calendar integration</strong>: students see how many days they are present and absent, surfaced via an integrated calendar view.</p>
+</blockquote>
+<hr />
+<h2 id="1-platform-constraints">1. Platform constraints</h2>
+<h3 id="primary-form-factors">Primary form factors</h3>
+<ul>
+<li><strong>Android app</strong>: First-class native or hybrid app experience for Android phones (low- to mid-range devices, intermittent connectivity).</li>
+<li><strong>iOS app</strong>: Equivalent experience for iPhones, functionally on par with Android.</li>
+<li><strong>Desktop browser</strong>: Modern desktop browsers (Chrome/Edge/Safari) with responsive layouts.</li>
+</ul>
+<p>All three platforms <strong>share a common backend and data model</strong>, so:</p>
+<ul>
+<li>Homework, quizzes, tests, progress, gaps, and <strong>attendance</strong> <strong>stay in sync</strong> across Android, iOS, and desktop.</li>
+<li>A student can start on one device and continue on another with no manual migration.</li>
+<li><strong>Attendance</strong> is visible per day (present/absent) and is integrated with a <strong>calendar</strong> view so students can see how many days they were present or absent over a period.</li>
+</ul>
+<h3 id="access-pattern">Access pattern</h3>
+<ul>
+<li>Individual student accounts with login using a <strong>6-digit MPIN only</strong> (see AI &amp; security constraints below).</li>
+<li>Parent/guardian and teacher/institute views remain out-of-scope for this iteration unless explicitly added later.</li>
+</ul>
+<h3 id="performance-connectivity">Performance &amp; connectivity</h3>
+<ul>
+<li>Optimize for <strong>low bandwidth</strong>, especially on mobile:</li>
+<li>Keep app bundles and API responses small.</li>
+<li>Lazy-load heavy AI interactions and rich media.</li>
+<li>Core navigation and progress views must remain <strong>usable on unstable 3G</strong>.</li>
+<li>AI calls can be deferred/queued with clear UI states and retry options.</li>
+</ul>
+<h3 id="time-horizon-scale-light-assumption">Time horizon / scale (light assumption)</h3>
+<ul>
+<li>Start as a <strong>single-region (India-focused)</strong> deployment, with a path to multi-region later.</li>
+<li>No complex global multi-region consistency design in this phase.</li>
+</ul>
+<h3 id="environment">Environment</h3>
+<ul>
+<li><strong>Mobile</strong>: Android and iOS apps (native or cross-platform), respecting platform UI norms but sharing UX principles.</li>
+<li><strong>Web</strong>: Responsive web app for desktop browsers.</li>
+<li>No assumptions yet about:</li>
+<li>Deep OS integrations (push notifications, system share sheets) in v1.</li>
+<li>Full offline mode; partial caching only.</li>
+</ul>
+<hr />
+<h2 id="2-ai-constraints">2. AI constraints</h2>
+<h3 id="pedagogical-behavior-non-negotiable">Pedagogical behavior (non-negotiable)</h3>
+<ul>
+<li>AI must <strong>not</strong> give direct answers by default.</li>
+<li>Enforced interaction pattern:</li>
+</ul>
+<p><strong>Hints -&gt; Approaches -&gt; Conceptual Explanation -&gt; Counter-Questions -&gt; (Only if needed) Worked solution outline</strong></p>
+<ul>
+<li>This pattern applies to:</li>
+<li>Homework help.</li>
+<li>Quiz/test feedback.</li>
+<li>Doubt solving.</li>
+<li>Absentee/gap-bridge teaching.</li>
+</ul>
+<h3 id="source-of-truth-for-content">Source of truth for content</h3>
+<ul>
+<li>Syllabus-aligned content and question banks are driven by:</li>
+<li><strong>Teacher-uploaded material</strong> (PDFs, notes, worksheets) ingested, chunked, and embedded in a vector store.</li>
+<li>Structured syllabus metadata (Class -&gt; Subject -&gt; Chapter -&gt; Topic).</li>
+<li>AI must be <strong>constrained exclusively to teacher-provided material</strong>; no external knowledge, no open-internet knowledge, no general LLM knowledge for any content.</li>
+<li>If the AI cannot find a relevant answer in teacher-uploaded material, it must respond: <strong>"Not found in provided material."</strong></li>
+</ul>
+<h3 id="determinism-safety">Determinism &amp; safety</h3>
+<ul>
+<li>Model configuration (temperature, system prompts, tools) must enforce:</li>
+<li><strong>Low temperature</strong> for maximum accuracy and consistency; no creative generation.</li>
+<li><strong>Strict retrieval-only prompting</strong>: the AI system prompt must instruct the model to answer solely from retrieved teacher material chunks.</li>
+<li><strong>Syllabus adherence</strong> and exam compatibility.</li>
+<li>The AI must <strong>fail closed</strong>:</li>
+<li>If no relevant teacher material chunk is found, the system must return: <strong>"Not found in provided material."</strong></li>
+<li>If retrieval confidence is below threshold, the system must reject the answer and return the same message.</li>
+<li>The model must not fall back to its own training data or general knowledge under any circumstance.</li>
+<li>Every AI response must <strong>cite the source material chunk ID</strong> used to generate it. If a citation cannot be provided, the response must be rejected.</li>
+</ul>
+<h3 id="experience-threads-ai-roles">Experience threads (AI roles)</h3>
+<ul>
+<li><strong>Homework Generator</strong></li>
+<li>Builds daily homework tasks from <strong>teacher-uploaded study material</strong> for the relevant class and subject.</li>
+<li>
+<p>Emphasizes conceptual understanding and application, not rote repetition.</p>
+</li>
+<li>
+<p><strong>Quiz &amp; Test Engine</strong></p>
+</li>
+<li>Generates:<ul>
+<li>Daily quizzes tied to recent teacher-provided material.</li>
+<li>Chapter-level tests once a chapter is completed.</li>
+</ul>
+</li>
+<li>
+<p>Evaluates responses and provides explanations for wrong answers, citing teacher material.</p>
+</li>
+<li>
+<p><strong>Doubt Solver / Concept Coach</strong></p>
+</li>
+<li>Reactively answers student questions using only teacher-provided material for the relevant syllabus context.</li>
+<li>Enforces the progressive guidance model and avoids direct answers unless clearly pedagogically necessary.</li>
+<li>
+<p>If answer is not found in teacher material, responds: <strong>"Not found in provided material."</strong></p>
+</li>
+<li>
+<p><strong>Gap-Bridge Tutor</strong></p>
+</li>
+<li>Re-teaches missed topics (absenteeism) using teacher-uploaded content for those topics.</li>
+<li>Identifies weak areas from performance data and suggests remedial activities grounded in teacher material.</li>
+</ul>
+<h3 id="teacher-content-ingestion-flow-v3">Teacher content ingestion flow (v3)</h3>
+<ul>
+<li><strong>Upload</strong>: Teacher uploads PDFs, notes, or worksheets via a teacher-facing upload endpoint.</li>
+<li><strong>Storage</strong>: Raw files stored securely in cloud object storage (e.g., S3 bucket) with access control.</li>
+<li><strong>Processing</strong>: Files are parsed (PDF text extraction), cleaned, and split into semantic chunks (e.g., ~500 token segments with overlap).</li>
+<li><strong>Embedding</strong>: Each chunk is converted into a vector embedding using an embedding model.</li>
+<li><strong>Vector storage</strong>: Embeddings and chunk metadata stored in a vector store (e.g., pgvector extension on PostgreSQL, or a dedicated vector DB).</li>
+<li><strong>Retrieval at query time</strong>: When a student asks a question or an activity is generated, the system performs vector similarity search over teacher material for the relevant class/subject/chapter to retrieve top-K relevant chunks.</li>
+</ul>
+<h3 id="ai-flow-v3">AI flow (v3)</h3>
+<pre class="codehilite"><code>Student Question
+    |
+    v
+Activities Service (receives question + syllabus context)
+    |
+    v
+Retrieval Service (vector search over teacher material for class/subject/chapter)
+    |
+    v
+Search teacher content ONLY (top-K chunks by similarity score)
+    |
+    v
+Inject retrieved context into prompt (system prompt enforces retrieval-only answering)
+    |
+    v
+AI Provider (LLM generates response grounded in retrieved chunks)
+    |
+    v
+Response Validator (checks: citation present? confidence above threshold? on-topic?)
+    |
+    v
+If valid: return response with chunk citation to student
+If invalid: return &quot;Not found in provided material.&quot;
+</code></pre>
 
-  <main>
-    <section>
-      <h2>1. Platform constraints</h2>
-      <h3>Primary form factors</h3>
-      <ul>
-        <li><strong>Android app:</strong> First-class native or hybrid app for Android phones (low- to mid-range devices, intermittent connectivity).</li>
-        <li><strong>iOS app:</strong> Equivalent experience for iPhones, functionally on par with Android.</li>
-        <li><strong>Desktop browser:</strong> Modern desktop browsers (Chrome/Edge/Safari) with responsive layouts.</li>
-      </ul>
-      <p>
-        All three platforms share a <strong>common backend and data model</strong> so that homework, quizzes, tests,
-        progress, and gaps stay in sync across Android, iOS, and desktop. Students can start on one device and
-        continue on another with no manual migration.
-      </p>
+<h3 id="cost-awareness-light-assumption">Cost-awareness (light assumption)</h3>
+<ul>
+<li>For high-frequency interactions (MCQ grading, simple feedback):</li>
+<li>Prefer <strong>structured, lower-cost</strong> AI or deterministic evaluation where possible.</li>
+<li>Reserve more expensive reasoning calls for:</li>
+<li>Doubt solving.</li>
+<li>Conceptual explanations.</li>
+<li>Custom exam generation with complex constraints.</li>
+<li>Embedding generation is a one-time cost per material upload; vector search is low-cost at query time.</li>
+</ul>
+<hr />
+<h2 id="3-data-sensitivity">3. Data sensitivity</h2>
+<h3 id="user-profile-data">User profile data</h3>
+<ul>
+<li>Student identity (name, class, board, school, contact details) is <strong>personally identifiable information (PII)</strong>.</li>
+<li>Must be:</li>
+<li>Encrypted in transit (HTTPS).</li>
+<li>Strongly recommended to be encrypted at rest.</li>
+<li>Parent/guardian information, if collected later, is also sensitive.</li>
+</ul>
+<h3 id="learning-and-performance-data">Learning and performance data</h3>
+<ul>
+<li>Homework completion, quiz/test scores, question-level attempts, and doubt logs are <strong>educational performance records</strong>.</li>
+<li>This data:</li>
+<li>Powers personalization and progress tracking.</li>
+<li>Must be protected from unauthorized access and misuse.</li>
+<li>Should support deletion/anonymization upon request (subject to regulations and product policy).</li>
+</ul>
+<h3 id="attendance-data">Attendance data</h3>
+<ul>
+<li><strong>Attendance records</strong> (days present, days absent, and associated dates) are <strong>sensitive educational records</strong>.</li>
+<li>This data:</li>
+<li>Drives the <strong>calendar-integrated attendance view</strong> (how many days present/absent).</li>
+<li>Feeds into absentee/gap-bridge flows (missed topics due to absence).</li>
+<li>Must be protected from unauthorized access and misuse.</li>
+<li>Should be treated with the same care as other learning/performance data (encryption, access control, consent where applicable).</li>
+</ul>
+<h3 id="content-and-teaching-data">Content and teaching data</h3>
+<ul>
+<li>Teacher-uploaded material (PDFs, notes, worksheets) may contain:</li>
+<li>Teacher intellectual property.</li>
+<li>Potential student examples or context.</li>
+<li>Treat this as <strong>internal educational content</strong>; do not expose raw material or chunk data directly to students without AI mediation.</li>
+<li>Access control: students may only query material uploaded by their class teacher(s); no cross-class access to teacher material.</li>
+</ul>
+<h3 id="regulatory-posture-light-assumption">Regulatory posture (light assumption)</h3>
+<ul>
+<li>Initial deployment context: India, with <strong>minors</strong> as primary users.</li>
+<li>Direction:</li>
+<li>Be conservative with cross-border data transfers to AI providers.</li>
+<li>Make consent flows explicit for:<ul>
+<li>Account creation and login.</li>
+<li>Use of student data for personalization.</li>
+<li>Use of third-party AI services.</li>
+</ul>
+</li>
+<li>Avoid sending unnecessary PII in prompts to AI providers:<ul>
+<li>Prefer pseudonymous IDs.</li>
+<li>Provide only the minimum context required to answer.</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h2 id="4-integration-assumptions">4. Integration assumptions</h2>
+<h3 id="teacher-content-ingestion-replaces-notebooklm">Teacher content ingestion (replaces NotebookLM)</h3>
+<ul>
+<li>Teachers upload study material (PDFs, notes, worksheets) via a dedicated upload API.</li>
+<li>Uploaded files are:</li>
+<li>Validated (file type, size limits, malware scan).</li>
+<li>Stored securely in cloud object storage with teacher_id and class association.</li>
+<li>Processed asynchronously: PDF parsing -&gt; text extraction -&gt; chunking -&gt; embedding generation -&gt; vector storage.</li>
+<li>The system maintains a <strong>teacher_materials</strong> record per upload and <strong>teacher_material_chunks</strong> per chunk with embedding vectors.</li>
+<li>At query time, the retrieval service searches only chunks belonging to the student's class teacher(s).</li>
+<li>No external knowledge feed (NotebookLM or otherwise) is consumed. All content is teacher-provided.</li>
+</ul>
+<h3 id="external-dependencies">External dependencies</h3>
+<ul>
+<li><strong>AI provider</strong> (e.g., OpenAI-compatible or Google): Stateless LLM for generation/evaluation. No persistent student data on provider side.</li>
+<li><strong>Embedding model</strong>: For generating vector embeddings of teacher material chunks. May be same provider or a dedicated embedding API.</li>
+<li>No other external content or knowledge dependencies.</li>
+</ul>
+<h3 id="authentication-identity-6-digit-mpin">Authentication &amp; identity (6-digit MPIN)</h3>
+<ul>
+<li>Student login is performed using a <strong>6-digit MPIN only</strong>:</li>
+<li>MPIN is numeric, fixed length (6 digits).</li>
+<li>Same MPIN is used across Android, iOS, and desktop to access the same account.</li>
+<li>Account identity (e.g., phone number or other unique identifier):</li>
+<li>Is assumed to be captured during account provisioning/registration flow.</li>
+<li>Is not used as a daily login credential from a UX standpoint; <strong>students remember only their MPIN</strong>.</li>
+<li>Security and UX implications:</li>
+<li>MPIN-only auth is a <strong>weaker factor</strong> than strong passwords or multi-factor auth.</li>
+<li>Requires strong protections:<ul>
+<li>Online brute-force protection (rate limiting, lockouts, backoff).</li>
+<li>Device-level protections where applicable (e.g., OS-level biometrics as an optional shortcut layered on top of MPIN in mobile apps).</li>
+</ul>
+</li>
+</ul>
+<h3 id="roles">Roles</h3>
+<ul>
+<li>Primary role:</li>
+<li><code>student</code> -- full focus of this artifact.</li>
+<li>Future possible roles (not in current scope, but to keep in mind):</li>
+<li><code>parent</code> -- monitor progress, limited actions.</li>
+<li><code>teacher</code> -- content upload, oversight, approvals, advanced analytics.</li>
+</ul>
+<h3 id="question-bank-evaluation">Question bank &amp; evaluation</h3>
+<ul>
+<li>Mindforge backend remains the <strong>system of record</strong> for:</li>
+<li>Questions (AI-generated from teacher material, or curated).</li>
+<li>Student responses.</li>
+<li>Grading outcomes and explanations.</li>
+<li>AI providers are <strong>stateless generators/evaluators</strong>:</li>
+<li>No long-term storage of student data on their side is assumed.</li>
+<li>Outputs are stored only after backend validation where necessary.</li>
+</ul>
+<h3 id="attendance-calendar-integration">Attendance &amp; calendar integration</h3>
+<ul>
+<li><strong>Attendance</strong> is a first-class capability:</li>
+<li>The system maintains a record of <strong>days present</strong> and <strong>days absent</strong> per student (per class/term or configurable period).</li>
+<li>Attendance is surfaced to the student via a <strong>calendar-integrated view</strong>:<ul>
+<li>Calendar shows which days the student was <strong>present</strong> vs <strong>absent</strong>.</li>
+<li>Summary metrics (e.g., "X days present, Y days absent this month") are visible.</li>
+</ul>
+</li>
+<li><strong>Calendar</strong> can be:<ul>
+<li>An in-app calendar view (primary): dates with present/absent markers and optional integration with device or school calendar (e.g., export or read-only sync) as a later enhancement.</li>
+</ul>
+</li>
+<li>Source of attendance data (e.g., teacher mark, school feed, or self-report) is <strong>out of scope for this light architecture</strong>; assume attendance data is available per day and stored in the backend. Exact APIs and sync with external calendars are deferred to final architecture.</li>
+</ul>
+<h3 id="other-integrations">Other integrations</h3>
+<ul>
+<li>No assumptions, in this phase, of:</li>
+<li>School ERPs.</li>
+<li>Payment gateways.</li>
+<li>SMS/notification gateways.</li>
+<li>Such integrations, if required, will be treated as separate architectural concerns.</li>
+</ul>
+<hr />
+<h2 id="5-risk-flags">5. Risk flags</h2>
+<h3 id="r1-ai-hallucination-vs-syllabus-accuracy">R1: AI hallucination vs. syllabus accuracy</h3>
+<ul>
+<li><strong>Risk</strong>: AI may generate off-syllabus, incorrect, or misaligned content by using its general training data.</li>
+<li><strong>Impact</strong>: Confused students; exam misalignment; trust erosion.</li>
+<li><strong>Direction</strong>:</li>
+<li>Strict grounding in teacher-uploaded material only; retrieval-only prompting enforced in system prompt.</li>
+<li>Validation layer rejects any response without a valid material chunk citation.</li>
+<li>AI must fail closed: "Not found in provided material." when retrieval confidence is low.</li>
+</ul>
+<h3 id="r2-over-helping-and-short-circuiting-learning">R2: Over-helping and short-circuiting learning</h3>
+<ul>
+<li><strong>Risk</strong>: Students may quickly bypass effort and demand full solutions.</li>
+<li><strong>Impact</strong>: Weak conceptual learning and dependency on AI.</li>
+<li><strong>Direction</strong>:</li>
+<li>UX must enforce the progressive guidance pattern.</li>
+<li>"Full solution" views, where allowed, should be gated behind meaningful effort and reflection.</li>
+</ul>
+<h3 id="r3-evaluation-fairness-and-trust">R3: Evaluation fairness and trust</h3>
+<ul>
+<li><strong>Risk</strong>: Inconsistent or opaque AI-based grading decisions.</li>
+<li><strong>Impact</strong>: Disputes over scores; loss of trust from students/parents.</li>
+<li><strong>Direction</strong>:</li>
+<li>Use deterministic scoring for objective questions (e.g., MCQs) where possible.</li>
+<li>Provide clear explanations for wrong answers and scoring rules.</li>
+</ul>
+<h3 id="r4-data-privacy-and-consent-minors">R4: Data privacy and consent (minors)</h3>
+<ul>
+<li><strong>Risk</strong>: Mishandling minors' data, missing consent, or unclear third-party data sharing.</li>
+<li><strong>Impact</strong>: Legal, ethical, and reputational issues.</li>
+<li><strong>Direction</strong>:</li>
+<li>Minimize third-party data exposure.</li>
+<li>Clear consent text and easily discoverable privacy policy.</li>
+<li>Simple mechanisms to manage accounts and, where applicable, delete data.</li>
+</ul>
+<h3 id="r5-teacher-material-quality-and-coverage">R5: Teacher material quality and coverage</h3>
+<ul>
+<li><strong>Risk</strong>: Incomplete, low-quality, or missing teacher uploads for certain topics.</li>
+<li><strong>Impact</strong>: AI cannot answer student queries; frequent "Not found in provided material" responses; degraded learning experience.</li>
+<li><strong>Direction</strong>:</li>
+<li>Surface material coverage metrics to teachers (which chapters/topics have material vs. gaps).</li>
+<li>Fallback to "Not found in provided material" is by design; the system does not fabricate answers.</li>
+<li>Encourage teachers to upload comprehensive material per chapter/topic.</li>
+</ul>
+<h3 id="r6-connectivity-constraints-and-latency">R6: Connectivity constraints and latency</h3>
+<ul>
+<li><strong>Risk</strong>: Relying heavily on live AI in low-connectivity contexts.</li>
+<li><strong>Impact</strong>: Sluggish, unreliable experience; abandoned sessions.</li>
+<li><strong>Direction</strong>:</li>
+<li>Pre-generate or cache content (e.g., daily quizzes, some homework) where possible.</li>
+<li>Use robust retry patterns and clear "in progress / offline" states across Android, iOS, and web.</li>
+</ul>
+<h3 id="r7-mpin-only-authentication-strength">R7: MPIN-only authentication strength</h3>
+<ul>
+<li><strong>Risk</strong>: A 6-digit MPIN is susceptible to brute-force guessing.</li>
+<li><strong>Impact</strong>: Potential account takeover if rate limiting and lockouts are weak.</li>
+<li><strong>Direction</strong>:</li>
+<li>Enforce strict online rate limiting and lockout policies.</li>
+<li>Consider optional secondary factors (e.g., device binding, OS biometrics as a convenience layer).</li>
+<li>UX should clearly communicate lockout and recovery flows (e.g., "forgot MPIN" tied to parent/phone verification).</li>
+</ul>
+<h3 id="r8-attendance-data-accuracy-and-source">R8: Attendance data accuracy and source</h3>
+<ul>
+<li><strong>Risk</strong>: Attendance shown to the student may be incorrect or out of date if the source system is wrong or sync fails.</li>
+<li><strong>Impact</strong>: Student/parent trust; incorrect gap-bridge or remedial suggestions.</li>
+<li><strong>Direction</strong>:</li>
+<li>Treat attendance as read-only from the student's perspective; no student self-correction of attendance in this scope.</li>
+<li>Clearly label the period and source of attendance in the UX (e.g., "Based on class attendance" or "This month").</li>
+<li>If calendar is synced with an external source, define failure and conflict handling in final architecture.</li>
+</ul>
+<h3 id="r9-teacher-material-access-control">R9: Teacher material access control</h3>
+<ul>
+<li><strong>Risk</strong>: Students accessing material from classes/teachers they are not enrolled with.</li>
+<li><strong>Impact</strong>: Data leakage; irrelevant content in AI responses.</li>
+<li><strong>Direction</strong>:</li>
+<li>Retrieval service must scope vector search to material uploaded by the student's assigned teacher(s) and class only.</li>
+<li>Access control enforced at the repository layer; no cross-class material access.</li>
+</ul>
+<hr />
+<h2 id="6-high-level-architecture-diagram-v3">6. High-Level Architecture Diagram (v3)</h2>
+<pre class="codehilite"><code>┌──────────────────────────────────────────────────────────────────────────────┐
+│                       MINDFORGE STUDENT EXPERIENCE                          │
+│                  Light Architecture v3 -- Teacher-Grounded Closed AI        │
+└──────────────────────────────────────────────────────────────────────────────┘
 
-      <h3>Access pattern</h3>
-      <ul>
-        <li>Individual student accounts with login using a <strong>6-digit MPIN only</strong>.</li>
-        <li>Parent/guardian and teacher/institute views remain out-of-scope for this iteration unless explicitly added later.</li>
-      </ul>
+  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+  │   ANDROID APP    │  │    iOS APP       │  │   DESKTOP WEB    │
+  │  (UI + Nav +     │  │  (UI + Nav +     │  │  (UI + Nav +     │
+  │   API Client)    │  │   API Client)    │  │   API Client)    │
+  └────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘
+           │                     │                     │
+           │    HTTPS / REST     │                     │
+           └─────────────────────┼─────────────────────┘
+                                 │
+                                 v
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │                           API LAYER (Gateway)                            │
+  │  Auth · Rate limit · Validation · Route to Business Layer                │
+  └──────────────────────────────────────────────────────────────────────────┘
+                                 │
+                                 v
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │                    BUSINESS LOGIC LAYER (Middle Layer)                    │
+  │  Auth · Today's plan · Activities · Grading · Attendance · Doubts       │
+  │                                                                          │
+  │  TEACHER-GROUNDED AI PIPELINE:                                          │
+  │  ┌─────────────┐  ┌──────────────┐  ┌────────────────┐  ┌───────────┐  │
+  │  │ Teacher      │  │ Retrieval    │  │ AI Orchestrator│  │ Response  │  │
+  │  │ Content Svc  │-&gt;│ Service      │-&gt;│ Service        │-&gt;│ Validator │  │
+  │  │ (ingestion)  │  │ (vector      │  │ (prompt +      │  │ (citation │  │
+  │  │              │  │  search)     │  │  LLM call)     │  │  check)   │  │
+  │  └─────────────┘  └──────────────┘  └────────────────┘  └───────────┘  │
+  │                                                                          │
+  │  Sync/conflict · No direct DB access                                    │
+  └──────────────┬───────────────────────────────────────┬──────────────────┘
+                 │                                       │
+                 │                                       │ HTTP
+                 v                                       v
+  ┌──────────────────────────────┐    ┌──────────────────────────────────────┐
+  │  DATA ACCESS LAYER           │    │  EXTERNAL                            │
+  │  (DB interaction only)       │    │  · AI provider (stateless LLM)      │
+  │  Repositories / DAOs         │    │  · Embedding model (stateless)      │
+  │  · teacher-content.repo      │    │                                      │
+  │  · embeddings.repo           │    │  NO external knowledge services.    │
+  │  · ai-usage.repo             │    │  NO NotebookLM.                     │
+  └──────────────┬───────────────┘    └──────────────────────────────────────┘
+                 │
+                 v
+  ┌──────────────────────────────┐    ┌──────────────────────────────────────┐
+  │  DATABASE                    │    │  CLOUD STORAGE                       │
+  │  PostgreSQL                  │    │  Teacher material files (PDFs, etc) │
+  │  · students · syllabus       │    └──────────────────────────────────────┘
+  │  · activities · responses    │
+  │  · attendance · doubts       │    ┌──────────────────────────────────────┐
+  │  · sessions · audit          │    │  REDIS (optional)                    │
+  │  · teacher_materials         │    │  Sessions · Rate limits · Cache      │
+  │  · teacher_material_chunks   │    └──────────────────────────────────────┘
+  │    (with embedding vectors)  │
+  │  · ai_usage_logs             │
+  └──────────────────────────────┘
 
-      <h3>Performance &amp; connectivity</h3>
-      <ul>
-        <li>Optimize for <strong>low bandwidth</strong>, especially on mobile: small app bundles, efficient APIs, lazy-loaded heavy AI interactions.</li>
-        <li>Core navigation and progress views must remain <strong>usable on unstable 3G</strong>.</li>
-        <li>AI calls can be deferred/queued with clear UI states and retry options.</li>
-      </ul>
+  TEACHER CONTENT FLOW:
+  Teacher Upload -&gt; File Validation -&gt; Cloud Storage -&gt; PDF Parse -&gt; Chunk
+       -&gt; Embed -&gt; Vector Store (teacher_material_chunks)
 
-      <h3>Time horizon / scale (light assumption)</h3>
-      <ul>
-        <li>Single-region (India-focused) initial deployment with a future path to multi-region.</li>
-        <li>No complex multi-region consistency design in this phase.</li>
-      </ul>
+  STUDENT AI FLOW:
+  Student Question -&gt; Retrieval (vector search, teacher material only)
+       -&gt; Inject context -&gt; AI Provider -&gt; Validate (citation check)
+       -&gt; Return response OR &quot;Not found in provided material.&quot;
 
-      <h3>Environment</h3>
-      <ul>
-        <li><strong>Mobile:</strong> Android and iOS apps (native or cross-platform), sharing UX principles but respecting platform norms.</li>
-        <li><strong>Web:</strong> Responsive web app for desktop browsers.</li>
-        <li>No assumptions yet about deep OS integrations (push notifications, etc.) or full offline mode.</li>
-      </ul>
-    </section>
+  NAVIGATION (UI LAYER):  Login -&gt; Home -&gt; Activity | Attendance | Doubts | Profile
+                          Activity -&gt; Results -&gt; Home
+  UX LOCKED: No change to screens, flows, or features per approved UX spec.
+</code></pre>
 
-    <section>
-      <h2>2. AI constraints</h2>
-      <h3>Pedagogical behavior (non-negotiable)</h3>
-      <ul>
-        <li>AI must <strong>not</strong> give direct answers by default.</li>
-        <li>Enforced interaction pattern:<br />
-          <strong>Hints → Approaches → Conceptual Explanation → Counter-Questions → (Only if needed) Worked solution outline</strong>
-        </li>
-        <li>Applies to homework help, quiz/test feedback, doubt solving, and absentee/gap-bridge flows.</li>
-      </ul>
-
-      <h3>Source of truth for content</h3>
-      <ul>
-        <li>Syllabus-aligned content and question banks driven by:
-          <ul>
-            <li><strong>Class teaching data via Google NotebookLM</strong> (daily summaries, key concepts, examples).</li>
-            <li>Structured syllabus metadata (Class → Subject → Chapter → Topic).</li>
-          </ul>
-        </li>
-        <li>AI must be <strong>constrained to syllabus-aligned materials</strong>; no open-internet knowledge for examinable content.</li>
-      </ul>
-
-      <h3>Determinism &amp; safety</h3>
-      <ul>
-        <li>Model configuration should prioritize <strong>accuracy, consistency, and syllabus adherence</strong> over creativity.</li>
-        <li>On uncertainty, AI must:
-          <ul>
-            <li>Explicitly signal uncertainty (e.g., &ldquo;I&rsquo;m not fully certain; here is my best attempt.&rdquo;).</li>
-            <li>Flag items that may need teacher/content-admin review where applicable.</li>
-          </ul>
-        </li>
-      </ul>
-
-      <h3>Experience threads (AI roles)</h3>
-      <ul>
-        <li><strong>Homework Generator</strong>
-          <ul>
-            <li>Builds daily homework tasks from NotebookLM-derived teaching summaries.</li>
-            <li>Focuses on conceptual understanding and application.</li>
-          </ul>
-        </li>
-        <li><strong>Quiz &amp; Test Engine</strong>
-          <ul>
-            <li>Generates daily quizzes and chapter-level tests.</li>
-            <li>Evaluates responses and explains wrong answers.</li>
-          </ul>
-        </li>
-        <li><strong>Doubt Solver / Concept Coach</strong>
-          <ul>
-            <li>Reactively answers student questions.</li>
-            <li>Strictly follows the progressive guidance model.</li>
-          </ul>
-        </li>
-        <li><strong>Gap-Bridge Tutor</strong>
-          <ul>
-            <li>Re-teaches missed topics.</li>
-            <li>Identifies weak areas and proposes remedial activities.</li>
-          </ul>
-        </li>
-      </ul>
-
-      <h3>Cost-awareness (light assumption)</h3>
-      <ul>
-        <li>For high-frequency interactions (e.g., MCQ grading), use <strong>structured, lower-cost</strong> AI or deterministic logic.</li>
-        <li>Reserve heavier reasoning for doubt solving, conceptual explanations, and complex custom exams.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>3. Data sensitivity</h2>
-      <h3>User profile data</h3>
-      <ul>
-        <li>Student identity (name, class, board, school, contact details) is <strong>PII</strong>.</li>
-        <li>Encrypt in transit; encryption at rest strongly recommended.</li>
-        <li>Parent/guardian data, if later added, is also sensitive.</li>
-      </ul>
-
-      <h3>Learning and performance data</h3>
-      <ul>
-        <li>Homework completion, quiz/test scores, question-level attempts, and doubt logs are <strong>educational performance records</strong>.</li>
-        <li>They drive personalization and progress tracking and must be protected from unauthorized access and misuse.</li>
-        <li>Should support deletion/anonymization upon request where feasible.</li>
-      </ul>
-
-      <h3>Content and teaching data</h3>
-      <ul>
-        <li>NotebookLM-derived teaching data may include teacher IP and student context.</li>
-        <li>Treat it as <strong>internal educational content</strong>; avoid raw, uncurated exposure.</li>
-      </ul>
-
-      <h3>Regulatory posture (light assumption)</h3>
-      <ul>
-        <li>India-focused deployment with minors as users.</li>
-        <li>Be conservative about cross-border transfers to AI providers.</li>
-        <li>Make consent flows explicit for:
-          <ul>
-            <li>Account creation and login.</li>
-            <li>Use of data for personalization.</li>
-            <li>Use of third-party AI services.</li>
-          </ul>
-        </li>
-        <li>Avoid unnecessary PII in prompts; prefer pseudonymous IDs and minimal context.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>4. Integration assumptions</h2>
-      <h3>NotebookLM integration (teaching data feed)</h3>
-      <ul>
-        <li>Receives <strong>daily per-class feeds</strong> from NotebookLM summarizing:
-          <ul>
-            <li>Topics covered.</li>
-            <li>Key points and explanations.</li>
-            <li>Example questions (when available).</li>
-          </ul>
-        </li>
-        <li>Used to generate:
-          <ul>
-            <li>Daily homework.</li>
-            <li>Daily quizzes.</li>
-            <li>Chapter-level assessments and gap-bridge flows.</li>
-          </ul>
-        </li>
-        <li>Treated as a <strong>read-only integration</strong>; exact API to be finalized later.</li>
-      </ul>
-
-      <h3>Authentication &amp; identity (6-digit MPIN)</h3>
-      <ul>
-        <li>Students log in using a <strong>6-digit numeric MPIN only</strong>.</li>
-        <li>The same MPIN is used across Android, iOS, and desktop to access the same account.</li>
-        <li>Account identity (e.g., phone number or similar identifier) is captured at registration but is not part of the daily login UX.</li>
-        <li>Because MPIN-only auth is weaker than passwords/MFA, strong protections are required:
-          <ul>
-            <li>Online brute-force protection (rate limiting, lockouts, backoff).</li>
-            <li>Optional device-level protections (e.g., OS biometrics as a convenience layer).</li>
-          </ul>
-        </li>
-      </ul>
-
-      <h3>Roles</h3>
-      <ul>
-        <li>Primary role: <code>student</code>.</li>
-        <li>Future (not in current scope): <code>parent</code> and <code>teacher</code>.</li>
-      </ul>
-
-      <h3>Question bank &amp; evaluation</h3>
-      <ul>
-        <li>Mindforge backend is the <strong>system of record</strong> for questions, responses, and grading outcomes.</li>
-        <li>AI providers act as <strong>stateless generators/evaluators</strong>.</li>
-        <li>Outputs are stored only after backend validation/sanitization when needed.</li>
-      </ul>
-
-      <h3>Other integrations</h3>
-      <ul>
-        <li>No assumptions in this phase about school ERPs, payment gateways, or SMS/notification gateways.</li>
-        <li>These will be treated separately if added later.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>5. Risk flags</h2>
-      <h3>R1: AI hallucination vs. syllabus accuracy</h3>
-      <ul>
-        <li><strong>Risk:</strong> AI may generate off-syllabus or incorrect content.</li>
-        <li><strong>Impact:</strong> Confused students; exam misalignment; erosion of trust.</li>
-        <li><strong>Direction:</strong> Strong grounding in NotebookLM and syllabus metadata; validation for syllabus alignment.</li>
-      </ul>
-
-      <h3>R2: Over-helping and short-circuiting learning</h3>
-      <ul>
-        <li><strong>Risk:</strong> Students may quickly bypass effort and demand full answers.</li>
-        <li><strong>Impact:</strong> Weak conceptual foundations and dependence on AI.</li>
-        <li><strong>Direction:</strong> UX must enforce progressive guidance; full solutions gated behind effort and reflection.</li>
-      </ul>
-
-      <h3>R3: Evaluation fairness and trust</h3>
-      <ul>
-        <li><strong>Risk:</strong> Inconsistent or opaque AI-based grading decisions.</li>
-        <li><strong>Impact:</strong> Score disputes; loss of trust.</li>
-        <li><strong>Direction:</strong> Deterministic scoring for objective questions; clear explanations for wrong answers.</li>
-      </ul>
-
-      <h3>R4: Data privacy and consent (minors)</h3>
-      <ul>
-        <li><strong>Risk:</strong> Mishandling minors&rsquo; data or unclear third-party sharing.</li>
-        <li><strong>Impact:</strong> Legal, ethical, and reputational issues.</li>
-        <li><strong>Direction:</strong> Minimize third-party data exposure; clear consent and privacy controls.</li>
-      </ul>
-
-      <h3>R5: Dependence on NotebookLM feed quality</h3>
-      <ul>
-        <li><strong>Risk:</strong> Noisy or incomplete daily summaries.</li>
-        <li><strong>Impact:</strong> Misaligned homework/quizzes; frustration.</li>
-        <li><strong>Direction:</strong> Fallback to standard syllabus banks; label content origin (today&rsquo;s class vs. standard syllabus).</li>
-      </ul>
-
-      <h3>R6: Connectivity constraints and latency</h3>
-      <ul>
-        <li><strong>Risk:</strong> Over-reliance on live AI in low-connectivity contexts.</li>
-        <li><strong>Impact:</strong> Sluggish or unreliable experience; abandoned sessions.</li>
-        <li><strong>Direction:</strong> Pre-generate/cache content where possible; robust retry and offline states across all platforms.</li>
-      </ul>
-
-      <h3>R7: MPIN-only authentication strength</h3>
-      <ul>
-        <li><strong>Risk:</strong> A 6-digit MPIN is vulnerable to brute-force guessing.</li>
-        <li><strong>Impact:</strong> Potential account takeover if protections are weak.</li>
-        <li><strong>Direction:</strong> Strong rate limiting and lockout; consider optional secondary factors (device binding, OS biometrics); clear lockout and recovery flows in UX.</li>
-      </ul>
-    </section>
-
-    <section class="handoff-block">
-      <h2>STANDARD HANDOFF – To UX / UI Agent (v2)</h2>
-      <p><strong>PROJECT:</strong> Mindforge Student Experience<br />
-      <strong>PHASE:</strong> Light Architecture (v2) → UX / UI (navigation-first)<br />
-      <strong>ARTIFACT SOURCE:</strong> docs/architecture/light/Mindforge_Student_Experience_Light_Architecture_v2.md</p>
-
-      <h3>1. Context summary (for UX)</h3>
-      <p>
-        Student learning app for Classes 6–12 (ICSE/CBSE/State), structured as
-        <strong>Class → Subject → Chapter → Topic</strong>. Runs on Android app, iOS app, and desktop browser, all
-        backed by the same account and data model so student work and progress remain in sync.
-      </p>
-      <p>AI behaves as a <strong>teacher-like guide</strong> using the pattern:</p>
-      <p><strong>Hints → Approaches → Concepts → Counter-Questions → (Optional) Worked solution outline</strong></p>
-      <p>Daily flows covered: homework, daily quizzes, chapter tests, student-generated exams, doubt solving, and absentee/gap-bridge.</p>
-
-      <h3>2. Key UX constraints (delta vs v1)</h3>
-      <ul>
-        <li><strong>Multi-platform parity and sync:</strong> Core flows (login, home, homework, quizzes, doubt solving) must exist and feel coherent across Android, iOS, and desktop with shared state.</li>
-        <li><strong>6-digit MPIN-only login:</strong> Design fast, student-friendly MPIN entry, error handling, lockout, and recovery experiences.</li>
-        <li><strong>Low-bandwidth mobile-first design:</strong> Desktop is supported, but constraints are driven by low-end Android.</li>
-        <li><strong>Learning-first guidance:</strong> Every AI interaction visually expresses the stepwise guidance model instead of one-tap direct answers.</li>
-      </ul>
-
-      <h3>3. What UX SHOULD design now (with new constraints)</h3>
-      <ul>
-        <li>Cross-platform login and onboarding with 6-digit MPIN creation, confirmation, and entry.</li>
-        <li>MPIN error, lockout, and &ldquo;forgot MPIN&rdquo; entry points (even if backend specifics are TBD).</li>
-        <li>Navigation and IA (Home/Today’s Plan, Syllabus Browser) consistent across Android, iOS, and desktop.</li>
-        <li>Core learning flows (homework, quizzes, tests, custom exams, doubt solving, gap-bridge) with synced progress indicators.</li>
-        <li>Connectivity and sync states (sync in progress, waiting to sync, offline with queued actions).</li>
-      </ul>
-
-      <h3>4. What UX MUST NOT design yet</h3>
-      <ul>
-        <li>Backend/API specs or implementation details.</li>
-        <li>Full teacher/admin dashboards or school/ERP integrations.</li>
-        <li>Payment/subscription flows or rich parent analytics.</li>
-      </ul>
-
-      <h3>5. Open questions UX should flag back</h3>
-      <ul>
-        <li>How to best communicate MPIN lockouts and recovery to students and parents.</li>
-        <li>How to balance &ldquo;remember me&rdquo; / auto-login across devices with account safety.</li>
-        <li>How to clearly visualize &ldquo;synced&rdquo; vs. &ldquo;pending sync&rdquo; across platforms.</li>
-      </ul>
-
-      <h3>6. Handoff status</h3>
-      <p>
-        <strong>Architecture Status (Light v2):</strong> Updated for 6-digit MPIN-only login and Android/iOS/desktop sync
-        requirements.
-      </p>
-      <p>
-        <strong>Approval for UX / UI exploration:</strong> Yes – UX / UI may proceed using this v2 artifact as the current
-        source of truth.
-      </p>
-      <p><strong>Signature:</strong> Architect AI Agent (Light Mode, v2) – Mindforge Student Experience</p>
-    </section>
-  </main>
+<hr />
+<h2 id="standard-handoff-to-ux-ui-agent-v3">STANDARD HANDOFF -- To UX / UI Agent (v3)</h2>
+<p><strong>PROJECT</strong>: Mindforge Student Experience<br />
+<strong>PHASE</strong>: Light Architecture (v3) -&gt; UX / UI (navigation-first)<br />
+<strong>ARTIFACT SOURCE</strong>: docs/architecture/light/Mindforge_Student_Experience_Light_Architecture_v3.md  </p>
+<h3 id="1-context-summary-for-ux">1. Context summary (for UX)</h3>
+<ul>
+<li>Student learning app for Classes 6-12 (ICSE/CBSE/State), structured as:</li>
+</ul>
+<p><strong>Class -&gt; Subject -&gt; Chapter -&gt; Topic</strong></p>
+<ul>
+<li>Runs on <strong>Android app, iOS app, and desktop browser</strong>, all backed by the same account and data model:</li>
+<li>A student can move between phone and desktop with all homework, quizzes, and progress <strong>kept in sync</strong>.</li>
+<li>AI behaves as a <strong>teacher-like guide</strong>, not an answer vending machine:</li>
+<li>
+<p>Interactions follow the pattern:</p>
+<p><strong>Hints -&gt; Approaches -&gt; Concepts -&gt; Counter-Questions -&gt; (Optional) Worked solution outline</strong>.</p>
+</li>
+<li>
+<p>AI is powered by <strong>teacher-provided study material</strong> (PDFs, notes uploaded by class teacher). All AI responses are grounded exclusively in this material. If the answer cannot be found, the AI responds: "Not found in provided material."</p>
+</li>
+<li>Daily flows:</li>
+<li>Homework from teacher-uploaded study material.</li>
+<li>Daily quizzes.</li>
+<li>Chapter-level tests.</li>
+<li>Student-generated exams.</li>
+<li>Doubt-solving (grounded in teacher material).</li>
+<li>Absentee / gap-bridge for missed topics.</li>
+<li><strong>Attendance with calendar integration</strong>: students can see how many days they are present and absent, via a calendar view and summary (e.g., days present/absent this month).</li>
+</ul>
+<h3 id="2-key-ux-constraints-delta-vs-v1">2. Key UX constraints (delta vs v1)</h3>
+<ul>
+<li><strong>Multi-platform parity and sync</strong></li>
+<li>UX patterns should be consistent in intent across Android, iOS, and desktop, even if visual details follow platform conventions.</li>
+<li>
+<p>Critical flows (login, home, homework, quiz, doubt solving) must exist on all three platforms with <strong>shared state</strong>.</p>
+</li>
+<li>
+<p><strong>6-digit MPIN-only login</strong></p>
+</li>
+<li>Students log in using only a <strong>6-digit numeric MPIN</strong>.</li>
+<li>
+<p>UX must:</p>
+<ul>
+<li>Make MPIN entry fast and familiar (e.g., PIN pad patterns).</li>
+<li>Handle incorrect attempts gracefully, with clear error feedback.</li>
+<li>Surface lockout states and recovery paths in a student-friendly way.</li>
+</ul>
+</li>
+<li>
+<p><strong>Low-bandwidth mobile-first design</strong></p>
+</li>
+<li>While desktop is supported, the <strong>primary constraints still come from low-end Android</strong>.</li>
+<li>
+<p>Design for quick load, minimal friction, and clear offline/poor-network handling across apps.</p>
+</li>
+<li>
+<p><strong>Learning-first guidance</strong></p>
+</li>
+<li>
+<p>Every AI interaction should visually reflect the "stepwise guidance" model, not direct-answer defaults.</p>
+</li>
+<li>
+<p><strong>Teacher-grounded AI responses</strong> (v3)</p>
+</li>
+<li>AI responses are powered by teacher-provided study material. Students may see: "Not found in provided material." when the teacher has not uploaded relevant content. This is expected behavior, not an error.</li>
+</ul>
+<h3 id="3-what-ux-should-design-now-with-new-constraints">3. What UX SHOULD design now (with new constraints)</h3>
+<ul>
+<li><strong>Cross-platform login and onboarding</strong></li>
+<li>MPIN creation and confirmation flow (during registration).</li>
+<li>MPIN-based login screens on Android, iOS, and web.</li>
+<li>
+<p>Error, lockout, and "forgot MPIN" entry points (even if backend details are TBD).</p>
+</li>
+<li>
+<p><strong>Navigation and information architecture</strong></p>
+</li>
+<li>Home / Today's Plan across all three platforms.</li>
+<li>Syllabus browser (Class -&gt; Subject -&gt; Chapter -&gt; Topic).</li>
+<li>
+<p>Consistent navigation schema so a student switching devices does not feel lost.</p>
+</li>
+<li>
+<p><strong>Core learning flows</strong></p>
+</li>
+<li>Homework, daily quiz, chapter tests, and student-generated exams (start, in-progress, results).</li>
+<li>Doubt-solving and absentee gap-bridge flows.</li>
+<li>
+<p>Clear indicators of progress and gaps that are visible identically across devices.</p>
+</li>
+<li>
+<p><strong>Attendance &amp; calendar</strong></p>
+</li>
+<li>An <strong>attendance</strong> view integrated with a <strong>calendar</strong>: students see which days they were present or absent and a summary (e.g., "X days present, Y days absent" for the selected period).</li>
+<li>
+<p>Calendar can be in-app only in v1; optional device/school calendar sync is a later enhancement. UX should design the in-app calendar and summary without changing existing flow diagrams.</p>
+</li>
+<li>
+<p><strong>Connectivity and sync states</strong></p>
+</li>
+<li>Visual patterns for:<ul>
+<li>Sync in progress (e.g., "Saving..." or "Syncing to cloud...").</li>
+<li>Conflicts or delays (e.g., when two devices are used quickly in sequence).</li>
+<li>Offline usage with queued actions where applicable.</li>
+</ul>
+</li>
+</ul>
+<h3 id="4-what-ux-must-not-design-yet">4. What UX MUST NOT design yet</h3>
+<ul>
+<li>Detailed backend/API specifications or platform-specific implementation details (e.g., exact push notification mechanisms).</li>
+<li>Full teacher/admin dashboards or school/ERP integrations.</li>
+<li>Payment/subscription or parent analytics beyond minimal conceptual placeholders.</li>
+</ul>
+<h3 id="5-open-questions-ux-should-flag-back">5. Open questions UX should flag back</h3>
+<ul>
+<li>How best to:</li>
+<li>Communicate MPIN lockouts and recovery flows to students and parents.</li>
+<li>Balance <strong>"remember me" / auto-login</strong> behaviors across Android, iOS, and desktop with shared-account safety.</li>
+<li>What visual patterns can clearly show:</li>
+<li>"This is synced" vs. "Waiting to sync" when students switch devices.</li>
+</ul>
+<h3 id="6-handoff-status">6. Handoff status</h3>
+<ul>
+<li><strong>Architecture Status (Light v3)</strong>:</li>
+<li>Updated to reflect <strong>Teacher-Grounded Closed AI model</strong>, replacing NotebookLM dependency.</li>
+<li>All previous v2 constraints preserved (6-digit MPIN, multi-platform sync, attendance + calendar).</li>
+<li><strong>Approval for UX / UI exploration</strong>:</li>
+<li><strong>Yes -- UX / UI may proceed under these updated constraints</strong>, using this v3 artifact as the current source of truth.</li>
+</ul>
+<p><strong>Signature</strong>:<br />
+Architect AI Agent (Light Mode, v3) -- Mindforge Student Experience</p>
 </body>
 </html>
-
