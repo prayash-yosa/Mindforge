@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Task 1.3 — DB Schema &amp; Entities</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #333; }
+    h1 { color: #1a1a1a; border-bottom: 2px solid #4a7c59; padding-bottom: 0.5rem; }
+    h2 { color: #4a7c59; margin-top: 2rem; }
+    h3 { color: #555; }
+    code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+    pre { background: #f4f4f4; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+    pre code { background: none; padding: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+    th { background: #4a7c59; color: white; }
+    ul { padding-left: 1.5rem; }
+    .meta { color: #666; font-size: 0.9em; }
+    .pass { color: #2e7d32; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Teacher Task 1.3 — DB Schema &amp; Migrations (Core Tables)</h1>
+  <p class="meta"><strong>Sprint</strong>: 1 — Workspace Integration &amp; Teacher Service Foundation | <strong>App</strong>: Teacher | <strong>Status</strong>: Done | <strong>Date</strong>: 2026-03-02 | <strong>SP</strong>: 3</p>
+
+  <h2>Summary</h2>
+  <p>Defined all 12 core Teacher domain entities with TypeORM, along with 6 domain-grouped repositories. Includes proper indexes, foreign keys, cascading deletes, and unique constraints per the architecture specification.</p>
+
+  <h2>Acceptance Criteria</h2>
+  <table>
+    <thead><tr><th>#</th><th>Criterion</th><th>Status</th><th>Implementation</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Define and migrate all core tables per architecture v1</td><td class="pass">Done</td><td>12 entities: teachers, classes, class_sessions, class_students, attendance_records, syllabus_documents, lesson_sessions, test_definitions, test_questions, test_attempts, offline_mark_entries, notification_events</td></tr>
+      <tr><td>2</td><td>Add indexes for critical query paths</td><td class="pass">Done</td><td>Composite and single-column indexes on all query-critical fields</td></tr>
+      <tr><td>3</td><td>Migrations idempotent and CI-ready</td><td class="pass">Done</td><td><code>data-source.ts</code> for CLI; <code>synchronize: true</code> dev; <code>migrationsRun: true</code> prod</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Entity Overview (12 Tables)</h2>
+  <table>
+    <thead><tr><th>#</th><th>Table</th><th>Purpose</th><th>Key Indexes / Constraints</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><code>teachers</code></td><td>Teacher profiles</td><td>Unique: external_id</td></tr>
+      <tr><td>2</td><td><code>classes</code></td><td>Grade/section/subject</td><td>Unique: (grade, section, subject, academic_year); FK → teachers</td></tr>
+      <tr><td>3</td><td><code>class_sessions</code></td><td>1-hour class instances</td><td>Composite: (class_id, scheduled_at); FK → classes, teachers</td></tr>
+      <tr><td>4</td><td><code>class_students</code></td><td>Student-class mapping</td><td>Unique: (class_id, student_id); FK → classes</td></tr>
+      <tr><td>5</td><td><code>attendance_records</code></td><td>Per-session attendance</td><td>Unique: (class_session_id, student_id); Index: student_id</td></tr>
+      <tr><td>6</td><td><code>syllabus_documents</code></td><td>Uploaded files + status</td><td>Composite: (class_id, subject); Index: status</td></tr>
+      <tr><td>7</td><td><code>lesson_sessions</code></td><td>AI-extracted concepts</td><td>Composite: (class_id, subject); FK → syllabus_documents</td></tr>
+      <tr><td>8</td><td><code>test_definitions</code></td><td>Online/offline tests</td><td>Composite: (class_id, subject, mode); FK → lesson_sessions</td></tr>
+      <tr><td>9</td><td><code>test_questions</code></td><td>Questions per test</td><td>Composite: (test_definition_id, order_index)</td></tr>
+      <tr><td>10</td><td><code>test_attempts</code></td><td>Student submissions</td><td>Unique: (test_definition_id, student_id)</td></tr>
+      <tr><td>11</td><td><code>offline_mark_entries</code></td><td>Teacher-entered marks</td><td>Composite: (test_definition_id, student_id)</td></tr>
+      <tr><td>12</td><td><code>notification_events</code></td><td>Alerts &amp; messages</td><td>Composite: (recipient_role, recipient_id, is_read); Index: category</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Repositories (6)</h2>
+  <table>
+    <thead><tr><th>Repository</th><th>Entities</th><th>Key Methods</th></tr></thead>
+    <tbody>
+      <tr><td>TeacherRepository</td><td>teachers</td><td>findById, findByExternalId, create, update, findAll</td></tr>
+      <tr><td>ClassRepository</td><td>classes, sessions, students</td><td>createClass, findClassesByTeacher, createSession, addStudentToClass</td></tr>
+      <tr><td>AttendanceRepository</td><td>attendance_records</td><td>markAttendance, bulkMark, findBySession, countAbsentByStudentInWeek</td></tr>
+      <tr><td>SyllabusRepository</td><td>documents, lessons</td><td>createDocument, findPendingDocuments, createLesson, findLessonsByClass</td></tr>
+      <tr><td>TestRepository</td><td>definitions, questions, attempts, marks</td><td>createDefinition, createQuestions, createAttempt, createMarkEntries</td></tr>
+      <tr><td>NotificationRepository</td><td>notification_events</td><td>create, bulkCreate, findByRecipient, markAsRead, countUnread</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Dev Seeder</h2>
+  <ul>
+    <li><strong>1 Teacher</strong>: Ms. Priya Sharma (T001, Mathematics + Science)</li>
+    <li><strong>2 Classes</strong>: 8A Mathematics, 8B Science (2025-2026)</li>
+    <li><strong>5 Students per class</strong>: Aarav (12131), Ankita (12132), Rohan (12133), Diya (12134), Kabir (12135)</li>
+    <li>Student IDs match the Student app UIDs for future cross-app sync</li>
+  </ul>
+
+  <h2>Verification</h2>
+  <table>
+    <thead><tr><th>Test</th><th>Expected</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td><code>nest build</code></td><td>Zero TypeScript errors</td><td class="pass">Pass</td></tr>
+      <tr><td>Service boots with SQLite</td><td>All 12 tables created</td><td class="pass">Pass</td></tr>
+      <tr><td>Dev seeder runs</td><td>Teacher + classes + students created</td><td class="pass">Pass</td></tr>
+      <tr><td><code>data-source.ts</code> exports</td><td>TypeORM CLI can reference</td><td class="pass">Pass</td></tr>
+    </tbody>
+  </table>
+</body>
+</html>

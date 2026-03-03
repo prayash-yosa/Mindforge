@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mindforge Teacher App -- Planner Backlog (v1)</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+      margin: 2rem auto;
+      padding: 0 1.5rem 3rem;
+      max-width: 960px;
+      color: #111827;
+      background: #f9fafb;
+    }
+    h1, h2, h3, h4 { color: #111827; }
+    h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    h2 { font-size: 1.5rem; margin-top: 2rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.25rem; }
+    h3 { font-size: 1.1rem; margin-top: 1.25rem; }
+    p { margin: 0.5rem 0; }
+    ul, ol { padding-left: 1.5rem; }
+    li { margin: 0.35rem 0; }
+    strong { font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+    th, td { border: 1px solid #d1d5db; padding: 0.5rem 0.75rem; text-align: left; }
+    th { background: #f3f4f6; font-weight: 600; }
+    tr:nth-child(even) { background: #f9fafb; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.9em; }
+    blockquote { border-left: 4px solid #6366f1; margin: 1rem 0; padding: 0.5rem 1rem; background: #eef2ff; }
+  </style>
+</head>
+<body>
+<h1>Mindforge Teacher App — Planner Backlog</h1>
+<p><strong>Artifact name</strong>: Mindforge_Teacher_App_Planner_Backlog<br />
+<strong>Role</strong>: Planner / Scrum Master AI Agent<br />
+<strong>Date</strong>: February 20, 2026<br />
+<strong>Mode</strong>: Enterprise (V3) — teacher app with AI-assisted syllabus &amp; tests  </p>
+<p><strong>Sources (no scope expansion)</strong>:
+- Architecture: <code>docs/architecture/teacher/Mindforge_Teacher_App_Architecture_v1.md</code>
+- UX Spec: <code>docs/architecture/teacher/Mindforge_Teacher_App_UX_Design_Specification.md</code>
+- Workspace: <code>docs/architecture/workspace-architecture.md</code></p>
+<p><strong>Capacity</strong>: 1 engineer = 8–10 SP/sprint · 20% buffer · AI work = probabilistic (confidence % in forecast)</p>
+<hr />
+<h2>Plan: Mindforge Teacher App — Release 1</h2>
+<h3>Buckets (Sprint / Epic)</h3>
+<table>
+<thead>
+<tr>
+<th>Bucket</th>
+<th>Type</th>
+<th>Focus</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Sprint 1</strong></td>
+<td>Sprint</td>
+<td>Workspace integration &amp; Teacher service foundation</td>
+</tr>
+<tr>
+<td><strong>Sprint 2</strong></td>
+<td>Sprint</td>
+<td>Class &amp; Attendance backend</td>
+</tr>
+<tr>
+<td><strong>Sprint 3</strong></td>
+<td>Sprint</td>
+<td>Syllabus upload &amp; AI ingestion</td>
+</tr>
+<tr>
+<td><strong>Sprint 4</strong></td>
+<td>Sprint</td>
+<td>Test authoring, generation &amp; evaluation</td>
+</tr>
+<tr>
+<td><strong>Sprint 5</strong></td>
+<td>Sprint</td>
+<td>Analytics, notifications &amp; cross-app APIs</td>
+</tr>
+<tr>
+<td><strong>Sprint 6</strong></td>
+<td>Sprint</td>
+<td>Teacher frontend — Dashboard &amp; Classes</td>
+</tr>
+<tr>
+<td><strong>Sprint 7</strong></td>
+<td>Sprint</td>
+<td>Teacher frontend — Syllabus, Tests, Analytics, Alerts</td>
+</tr>
+<tr>
+<td><strong>Sprint 8</strong></td>
+<td>Sprint</td>
+<td>Hardening, observability &amp; AI guardrails</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Sprint 1 — Workspace Integration &amp; Teacher Service Foundation</h2>
+<p><strong>Capacity</strong>: 10 SP (1 eng) · Buffer 20% → 8 SP target</p>
+<hr />
+<h3>Task 1.1 — Wire Teacher app into workspace &amp; gateway routing</h3>
+<p><strong>Labels</strong>: Type: Hardening | AI: Non-AI | Risk: Low | Area: Workspace / Gateway</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> platform team<br />
+- <strong>I want</strong> the Teacher frontend/backend wired into the monorepo and API gateway<br />
+- <strong>So that</strong> Teacher traffic flows via <code>services/gateway</code> and respects workspace rules.<br />
+- <strong>Dependencies</strong>: Existing workspace scaffolding.<br />
+- <strong>Risks</strong>: Misconfigured routing could affect other apps.</p>
+<p><strong>Checklist</strong>:
+- [ ] Ensure <code>apps/teacher/frontend</code> and <code>apps/teacher/backend</code> are registered in root <code>package.json</code> workspaces and Turborepo tasks.
+- [ ] Add Teacher routes in <code>services/gateway</code> (NestJS) with role <code>Teacher</code> (and <code>Admin</code> where required) and routing to <code>:3003</code> backend.
+- [ ] Verify JWT + RBAC path in gateway for Teacher role.
+- [ ] Local dev commands documented (e.g. <code>pnpm dev --filter apps/teacher/*</code> or equivalent).</p>
+<p><strong>Estimate</strong>: 2 SP</p>
+<hr />
+<h3>Task 1.2 — Teacher backend skeleton (NestJS service)</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: Non-AI | Risk: Low | Area: Teacher Backend</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> backend engineer<br />
+- <strong>I want</strong> a Teacher NestJS service skeleton with core modules and health endpoints<br />
+- <strong>So that</strong> feature modules (attendance, syllabus, tests) can be added cleanly.<br />
+- <strong>Dependencies</strong>: Task 1.1.<br />
+- <strong>Risks</strong>: None.</p>
+<p><strong>Checklist</strong>:
+- [ ] Create <code>apps/teacher/backend</code> NestJS app with module layout matching architecture (Class &amp; Attendance, Syllabus &amp; AI, Tests, Evaluation, Analytics, Notifications).
+- [ ] Implement basic health check and version endpoint.
+- [ ] Configure connection to Teacher DB (PostgreSQL/schema per workspace pattern).
+- [ ] Ensure no direct imports from other app backends; only <code>@mindforge/shared</code>.</p>
+<p><strong>Estimate</strong>: 2 SP</p>
+<hr />
+<h3>Task 1.3 — Teacher DB schema &amp; migrations (core tables)</h3>
+<p><strong>Labels</strong>: Type: Hardening | AI: Non-AI | Risk: Low | Area: Teacher Backend — Data</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> system<br />
+- <strong>I want</strong> versioned migrations for core Teacher tables<br />
+- <strong>So that</strong> class, attendance, syllabus, tests and notifications share a stable schema.<br />
+- <strong>Dependencies</strong>: Task 1.2.<br />
+- <strong>Risks</strong>: Schema changes impacting analytics later if poorly modelled.</p>
+<p><strong>Checklist</strong>:
+- [ ] Define and migrate tables: <code>teacher</code> (if needed), <code>class</code>, <code>class_session</code>, <code>class_student</code>, <code>attendance_record</code>, <code>syllabus_document</code>, <code>lesson_session</code>, <code>test_definition</code>, <code>test_question</code>, <code>test_attempt</code>, <code>offline_mark_entry</code>, <code>notification_event</code> (per architecture v1).
+- [ ] Add indexes for <code>class_session</code>, <code>student_id</code>, dates, and foreign keys.
+- [ ] Ensure migrations are idempotent and integrated into CI/CD.</p>
+<p><strong>Estimate</strong>: 3 SP | <strong>Status</strong>: Done</p>
+<hr />
+<h3>Task 1.4 — Shared contracts for Teacher APIs in @mindforge/shared</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: Non-AI | Risk: Low | Area: Shared</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> cross-app integrator<br />
+- <strong>I want</strong> Teacher DTOs and enums in <code>@mindforge/shared</code><br />
+- <strong>So that</strong> Student/Parent/Admin and Gateway can call Teacher APIs without tight coupling.<br />
+- <strong>Dependencies</strong>: Task 1.2, workspace architecture.<br />
+- <strong>Risks</strong>: Breaking changes if contracts are unstable.</p>
+<p><strong>Checklist</strong>:
+- [ ] Add Teacher-specific DTOs/interfaces in <code>shared/src/interfaces/teacher</code> (attendance summary, test definition, analytics slices, etc.).
+- [ ] Expose Teacher-related auth roles/constants in <code>shared/src/auth</code> as needed.
+- [ ] Ensure Teacher frontend and backend both consume these shared types.</p>
+<p><strong>Estimate</strong>: 1 SP</p>
+<hr />
+<p><strong>Sprint 1 total</strong>: 8 SP</p>
+<hr />
+<h2>Sprint 2 — Class &amp; Attendance Backend</h2>
+<p><strong>Capacity</strong>: 10 SP · Buffer 20% → 8 SP target</p>
+<hr />
+<h3>Task 2.1 — Class &amp; timetable domain (class, sessions, mappings)</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: Non-AI | Risk: Low | Area: Teacher Backend — Class &amp; Attendance</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> teacher<br />
+- <strong>I want</strong> classes, sections, timetables and student mappings defined<br />
+- <strong>So that</strong> I can take attendance per class session.<br />
+- <strong>Dependencies</strong>: Task 1.3.<br />
+- <strong>Risks</strong>: None.</p>
+<p><strong>Checklist</strong>:
+- [ ] Implement CRUD/APIs for <code>class</code>, <code>class_session</code>, <code>class_student</code> in Teacher backend.
+- [ ] Ensure sessions align with 1‑hour slots from timetable; include teacher, subject, datetime.
+- [ ] Expose read APIs for Student/Parent/Admin to fetch class info via gateway.</p>
+<p><strong>Estimate</strong>: 2 SP</p>
+<hr />
+<h3>Task 2.2 — Attendance mark entry APIs (per class session)</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: Non-AI | Risk: Low | Area: Teacher Backend — Class &amp; Attendance</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> teacher<br />
+- <strong>I want</strong> to mark attendance quickly with default Present and mark only absentees<br />
+- <strong>So that</strong> I can complete attendance in 1–2 clicks per class.<br />
+- <strong>Dependencies</strong>: Task 2.1.<br />
+- <strong>Risks</strong>: Data inconsistency if edits after cut-off are not constrained.</p>
+<p><strong>Checklist</strong>:
+- [ ] Implement API to open/create a <code>class_session</code> and fetch student list with default Present state.
+- [ ] Implement API to mark Absent (writes <code>attendance_record</code> with status=ABSENT and notes).
+- [ ] Enforce same-day edit window via <code>editable_until</code>; return proper error if expired.
+- [ ] Provide read APIs for per-session and per-day attendance views.</p>
+<p><strong>Estimate</strong>: 3 SP</p>
+<hr />
+<h3>Task 2.3 — Attendance aggregation &amp; weekly absence alerts job</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: Non-AI | Risk: Medium | Area: Teacher Backend — Analytics/Notifications</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> teacher<br />
+- <strong>I want</strong> weekly attendance summaries and alerts when a student is absent &gt;2 days/week<br />
+- <strong>So that</strong> I can intervene early with at-risk students.<br />
+- <strong>Dependencies</strong>: Task 2.2.<br />
+- <strong>Risks</strong>: Incorrect aggregation leading to wrong alerts.</p>
+<p><strong>Checklist</strong>:
+- [ ] Implement aggregation jobs or queries for daily/weekly/monthly attendance per student/class.
+- [ ] Implement background job that finds students absent &gt;2 days in a calendar week and creates <code>notification_event</code> entries.
+- [ ] Expose attendance summary APIs for Teacher dashboard and Student/Parent views via gateway.</p>
+<p><strong>Estimate</strong>: 3 SP</p>
+<hr />
+<p><strong>Sprint 2 total</strong>: 8 SP</p>
+<hr />
+<h2>Sprint 3 — Syllabus Upload &amp; AI Ingestion</h2>
+<p><strong>Capacity</strong>: 10 SP · Buffer 20% → 8 SP target · <strong>AI confidence</strong>: ~75%</p>
+<hr />
+<h3>Task 3.1 — Syllabus upload API &amp; storage</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: Non-AI | Risk: Low | Area: Teacher Backend — Syllabus</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> teacher<br />
+- <strong>I want</strong> to upload syllabus files (PDF/Image) tagged with class, subject, date and duration<br />
+- <strong>So that</strong> they are stored and ready for AI processing.<br />
+- <strong>Dependencies</strong>: Task 1.3.<br />
+- <strong>Risks</strong>: Storage/security misconfiguration.</p>
+<p><strong>Checklist</strong>:
+- [ ] Implement API to upload files to object storage (e.g. S3) and create <code>syllabus_document</code> records with status <code>PENDING</code>.
+- [ ] Store metadata: class, subject, date, duration (1 hour).
+- [ ] Enforce file size and type limits; return clear errors on failure.</p>
+<p><strong>Estimate</strong>: 2 SP</p>
+<hr />
+<h3>Task 3.2 — AI ingestion worker: OCR + concept extraction → lesson_session</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: AI | Risk: Medium | Area: Teacher Backend — AI Orchestration</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> system<br />
+- <strong>I want</strong> a background worker that runs OCR and LLM-based concept extraction on syllabus documents<br />
+- <strong>So that</strong> I get structured <code>lesson_session</code> entities for tests and analytics.<br />
+- <strong>Dependencies</strong>: Task 3.1; AI provider integration available.<br />
+- <strong>Risks</strong>: AI hallucination, OCR errors.</p>
+<p><strong>Checklist</strong>:
+- [ ] Implement background worker/queue that picks <code>syllabus_document</code> with <code>PENDING</code> status.
+- [ ] Run OCR (if image) and extract raw text.
+- [ ] Call AI orchestrator with prompt templates to produce: concept summary, learning objectives, <code>has_numericals</code> flag.
+- [ ] Store results in <code>lesson_session</code>, update document status to <code>READY</code> or <code>FAILED</code> with reason.</p>
+<p><strong>Estimate</strong>: 3 SP</p>
+<hr />
+<h3>Task 3.3 — Syllabus &amp; lesson read APIs for frontend</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: Non-AI | Risk: Low | Area: Teacher Backend — Syllabus</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> teacher<br />
+- <strong>I want</strong> to see recent uploads, processing status, and extracted chapters/topics and concepts<br />
+- <strong>So that</strong> I can use them to configure tests.<br />
+- <strong>Dependencies</strong>: Task 3.2.<br />
+- <strong>Risks</strong>: None.</p>
+<p><strong>Checklist</strong>:
+- [ ] Implement APIs to list syllabus uploads with status (<code>Processing</code>, <code>Ready</code>, <code>Failed</code>).
+- [ ] Implement APIs to get chapters/topics and <code>lesson_session</code> details (summary, objectives, flags) for a class/subject.
+- [ ] Ensure error states (e.g. failed processing) are clearly surfaced for UX.</p>
+<p><strong>Estimate</strong>: 3 SP</p>
+<hr />
+<p><strong>Sprint 3 total</strong>: 8 SP</p>
+<hr />
+<h2>Sprint 4 — Test Authoring, Generation &amp; Evaluation</h2>
+<p><strong>Capacity</strong>: 10 SP · Buffer 20% → 8 SP target · <strong>AI confidence</strong>: ~70%</p>
+<hr />
+<h3>Task 4.1 — Test domain &amp; authoring APIs (online + offline)</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: Non-AI | Risk: Low | Area: Teacher Backend — Tests</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> teacher<br />
+- <strong>I want</strong> to define online daily quizzes and offline printable tests<br />
+- <strong>So that</strong> I can assess students based on recent syllabus.<br />
+- <strong>Dependencies</strong>: Task 3.3.<br />
+- <strong>Risks</strong>: None.</p>
+<p><strong>Checklist</strong>:
+- [ ] Implement <code>test_definition</code> and related entities for online daily quiz and offline printable tests.
+- [ ] Authoring APIs to create/update test definitions: scope (class, subject, chapter), total marks, duration, question mix.
+- [ ] Ensure online quiz definitions enforce objective types only (MCQ/FIB/T/F) at schema level.</p>
+<p><strong>Estimate</strong>: 2 SP</p>
+<hr />
+<h3>Task 4.2 — Online daily quiz AI question generation (no numericals)</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: AI | Risk: Medium | Area: Teacher Backend — AI Orchestration</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> teacher<br />
+- <strong>I want</strong> AI-generated objective questions for daily quizzes with <strong>no numericals</strong><br />
+- <strong>So that</strong> I can quickly create quizzes aligned to lessons.<br />
+- <strong>Dependencies</strong>: Task 4.1, 3.2.<br />
+- <strong>Risks</strong>: AI accidentally generating numericals or off-topic content.</p>
+<p><strong>Checklist</strong>:
+- [ ] Implement AI question generation pipeline for online quizzes using <code>lesson_session</code> concepts and objectives.
+- [ ] Enforce prompt templates and post-validation to block numericals (value-solving) for online quizzes.
+- [ ] Store generated questions in <code>test_question</code> linked to <code>test_definition</code>.</p>
+<p><strong>Estimate</strong>: 3 SP</p>
+<hr />
+<h3>Task 4.3 — Offline printable test generation &amp; PDF export</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: AI | Risk: Medium | Area: Teacher Backend — Tests</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> teacher<br />
+- <strong>I want</strong> AI-assisted offline tests (with numericals and long answers) and downloadable PDFs<br />
+- <strong>So that</strong> I can conduct paper-based exams with answer keys.<br />
+- <strong>Dependencies</strong>: Task 4.1, 3.2.<br />
+- <strong>Risks</strong>: PDF generation reliability; AI answer quality.</p>
+<p><strong>Checklist</strong>:
+- [ ] Implement offline test generation that uses concept summaries and <code>has_numericals</code> to decide question mix.
+- [ ] Generate Student Question Paper and Teacher Answer Key PDFs from <code>test_question</code> data.
+- [ ] Ensure numericals and model answers follow syllabus and documented constraints.</p>
+<p><strong>Estimate</strong>: 3 SP</p>
+<hr />
+<h3>Task 4.4 — Evaluation APIs (online auto-grade + offline mark entry)</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: Non-AI | Risk: Low | Area: Teacher Backend — Evaluation</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> teacher<br />
+- <strong>I want</strong> auto-graded scores for online tests and flows to enter offline marks<br />
+- <strong>So that</strong> I can see complete class performance in one place.<br />
+- <strong>Dependencies</strong>: Task 4.1, 4.2, 4.3.<br />
+- <strong>Risks</strong>: Mis-scoring if question types or marks are misaligned.</p>
+<p><strong>Checklist</strong>:
+- [ ] Implement online evaluation logic for objective questions (auto-grade, attempted vs not-attempted counts).
+- [ ] Implement APIs for teacher-entered offline marks per question/section and compute aggregates.
+- [ ] Ensure results feed Teacher dashboards and Student/Parent views via shared contracts.</p>
+<p><strong>Estimate</strong>: 2 SP</p>
+<hr />
+<p><strong>Sprint 4 total</strong>: 10 SP (at cap; consider moving 1 SP to Sprint 5 if needed)</p>
+<hr />
+<h2>Sprint 5 — Analytics, Notifications &amp; Cross-App APIs</h2>
+<p><strong>Capacity</strong>: 10 SP · Buffer 20% → 8 SP target</p>
+<hr />
+<h3>Task 5.1 — Teacher analytics data APIs (performance &amp; attendance)</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: Non-AI | Risk: Low | Area: Teacher Backend — Analytics</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> teacher<br />
+- <strong>I want</strong> APIs for KPIs and trends (scores, attendance, at-risk students)<br />
+- <strong>So that</strong> the Results &amp; Analytics dashboard can show class health.<br />
+- <strong>Dependencies</strong>: Tasks 2.3, 4.4.<br />
+- <strong>Risks</strong>: Heavy queries affecting performance.</p>
+<p><strong>Checklist</strong>:
+- [ ] Implement APIs returning KPIs (average score, attendance %, at-risk students, tests this week) by class/subject/period.
+- [ ] Implement trend endpoints (score over time, attendance by week, weak concepts). 
+- [ ] Optimise via indexes or pre-aggregated snapshots where needed.</p>
+<p><strong>Estimate</strong>: 3 SP</p>
+<hr />
+<h3>Task 5.2 — Notifications &amp; alerts pipeline (teacher-facing)</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: Non-AI | Risk: Medium | Area: Teacher Backend — Notifications</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> teacher<br />
+- <strong>I want</strong> in-app alerts for absences, missed tests and auto-submissions<br />
+- <strong>So that</strong> I never miss important events.<br />
+- <strong>Dependencies</strong>: Tasks 2.3, 4.4.<br />
+- <strong>Risks</strong>: Duplicate or noisy alerts.</p>
+<p><strong>Checklist</strong>:
+- [ ] Ensure absence &gt;2 days/week alerts are surfaced as <code>notification_event</code> for teacher.
+- [ ] Implement test-related alerts: missed deadlines, auto-submitted tests, evaluation pending.
+- [ ] Expose list and detail APIs for Alerts / Messages screen.</p>
+<p><strong>Estimate</strong>: 3 SP</p>
+<hr />
+<h3>Task 5.3 — Cross-app read APIs for Student/Parent/Admin</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: Non-AI | Risk: Medium | Area: Teacher Backend — Integration</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> platform<br />
+- <strong>I want</strong> Teacher backend to expose attendance and performance read APIs for other apps<br />
+- <strong>So that</strong> Student/Parent/Admin can show shared analytics without duplicating logic.<br />
+- <strong>Dependencies</strong>: Task 5.1.<br />
+- <strong>Risks</strong>: Data leaks if RBAC not correctly enforced.</p>
+<p><strong>Checklist</strong>:
+- [ ] Implement read-only endpoints (via gateway) for attendance and performance aggregates suitable for Student/Parent/Admin.
+- [ ] Use <code>@mindforge/shared</code> contracts and enforce RBAC at gateway.</p>
+<p><strong>Estimate</strong>: 2 SP</p>
+<hr />
+<p><strong>Sprint 5 total</strong>: 8 SP</p>
+<hr />
+<h2>Sprint 6 — Teacher Frontend: Dashboard &amp; Classes</h2>
+<p><strong>Capacity</strong>: 10 SP · Buffer 20% → 8 SP target</p>
+<hr />
+<h3>Task 6.1 — Teacher frontend app shell, routing &amp; auth</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: Non-AI | Risk: Low | Area: Teacher Frontend</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> teacher<br />
+- <strong>I want</strong> a Teacher web app with sidebar navigation and secure access<br />
+- <strong>So that</strong> I can access Dashboard, Classes, Syllabus, Tests, Analytics and Alerts.<br />
+- <strong>Dependencies</strong>: Task 1.1, 1.4.<br />
+- <strong>Risks</strong>: None.</p>
+<p><strong>Checklist</strong>:
+- [ ] Create <code>apps/teacher/frontend</code> React app using Vite, wired into workspace.
+- [ ] Implement sidebar navigation: Dashboard, Classes &amp; Attendance, Syllabus, Tests, Results &amp; Analytics, Alerts / Messages.
+- [ ] Integrate auth with JWT from gateway; ensure only Teacher/Admin roles can access.</p>
+<p><strong>Estimate</strong>: 2 SP</p>
+<hr />
+<h3>Task 6.2 — Dashboard screen (teacher overview)</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: Non-AI | Risk: Low | Area: Teacher Frontend</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> teacher<br />
+- <strong>I want</strong> a Dashboard with today’s classes, attendance issues, pending test evaluations and alerts<br />
+- <strong>So that</strong> I see my workload at a glance.<br />
+- <strong>Dependencies</strong>: Task 6.1, 5.1, 5.2.<br />
+- <strong>Risks</strong>: None.</p>
+<p><strong>Checklist</strong>:
+- [ ] Implement Dashboard layout per UX (KPI cards, today’s timetable, attendance summary, recent alerts).
+- [ ] Call Teacher analytics and alerts APIs; show loading, error and empty states.</p>
+<p><strong>Estimate</strong>: 2 SP</p>
+<hr />
+<h3>Task 6.3 — Classes &amp; Attendance screen (desktop + mobile)</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: Non-AI | Risk: Low | Area: Teacher Frontend</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> teacher<br />
+- <strong>I want</strong> to take attendance per class session with default Present and mark absentees<br />
+- <strong>So that</strong> I can complete attendance during or right after class.<br />
+- <strong>Dependencies</strong>: Task 2.2, 6.1.<br />
+- <strong>Risks</strong>: UX performance on large classes.</p>
+<p><strong>Checklist</strong>:
+- [ ] Implement desktop layout per UX (class/date/session selectors, Present/Absent pills, notes, summary chips, mini-calendar, Save/Mark all present/Undo).
+- [ ] Implement mobile layout (card list with big pills, sticky footer actions).
+- [ ] Wire to attendance mark entry APIs; handle edit window expiry and network errors.</p>
+<p><strong>Estimate</strong>: 3 SP</p>
+<hr />
+<h3>Task 6.4 — Attendance calendar &amp; summaries on frontend</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: Non-AI | Risk: Low | Area: Teacher Frontend</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> teacher<br />
+- <strong>I want</strong> calendar views and summaries of attendance<br />
+- <strong>So that</strong> I can quickly see trends for a class.<br />
+- <strong>Dependencies</strong>: Task 2.3, 6.3.<br />
+- <strong>Risks</strong>: None.</p>
+<p><strong>Checklist</strong>:
+- [ ] Integrate mini-calendar and full calendar views with attendance summary APIs.
+- [ ] Show present/absent dots and aggregates; honour error/offline states.</p>
+<p><strong>Estimate</strong>: 1 SP</p>
+<hr />
+<p><strong>Sprint 6 total</strong>: 8 SP</p>
+<hr />
+<h2>Sprint 7 — Teacher Frontend: Syllabus, Tests, Analytics, Alerts</h2>
+<p><strong>Capacity</strong>: 10 SP · Buffer 20% → 8 SP target</p>
+<hr />
+<h3>Task 7.1 — Syllabus upload &amp; concepts UI</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: Non-AI | Risk: Low | Area: Teacher Frontend — Syllabus</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> teacher<br />
+- <strong>I want</strong> to upload syllabus files and inspect AI-extracted chapters/topics and concepts<br />
+- <strong>So that</strong> I can prepare tests and track coverage.<br />
+- <strong>Dependencies</strong>: Task 3.3, 6.1.<br />
+- <strong>Risks</strong>: None.</p>
+<p><strong>Checklist</strong>:
+- [ ] Implement Syllabus screen per UX (upload zone, recent uploads with status, left chapters/topics, right concept summary/objectives/flags).
+- [ ] Show Processing/Ready/Failed states; expose Retry where backend supports.</p>
+<p><strong>Estimate</strong>: 2 SP</p>
+<hr />
+<h3>Task 7.2 — Tests UI (online daily quiz + offline printable)</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: AI | Risk: Medium | Area: Teacher Frontend — Tests</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> teacher<br />
+- <strong>I want</strong> to configure online quizzes and offline printable tests<br />
+- <strong>So that</strong> I can generate assessments from recent syllabus.<br />
+- <strong>Dependencies</strong>: Task 4.2, 4.3, 6.1.<br />
+- <strong>Risks</strong>: Misaligned expectations on AI generation latency.</p>
+<p><strong>Checklist</strong>:
+- [ ] Implement Tests screen with Online Daily Quiz and Offline Printable tabs per UX.
+- [ ] Wire Online quiz forms to authoring and AI question generation APIs, with <code>Enforce NO numericals</code> toggle clearly visible.
+- [ ] Wire Offline test config to offline generation and PDF download APIs.</p>
+<p><strong>Estimate</strong>: 3 SP</p>
+<hr />
+<h3>Task 7.3 — Results &amp; Analytics UI</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: Non-AI | Risk: Low | Area: Teacher Frontend — Analytics</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> teacher<br />
+- <strong>I want</strong> dashboards for scores, attendance and at-risk students<br />
+- <strong>So that</strong> I can identify who needs extra coaching.<br />
+- <strong>Dependencies</strong>: Task 5.1, 6.1.<br />
+- <strong>Risks</strong>: Data overload if not summarised well.</p>
+<p><strong>Checklist</strong>:
+- [ ] Implement Results &amp; Analytics screen with KPIs, charts and “Students needing attention” table per UX.
+- [ ] Hook up to analytics APIs; support filters (class, subject, period).</p>
+<p><strong>Estimate</strong>: 2 SP</p>
+<hr />
+<h3>Task 7.4 — Alerts / Messages UI</h3>
+<p><strong>Labels</strong>: Type: Feature | AI: Non-AI | Risk: Low | Area: Teacher Frontend — Notifications</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> teacher<br />
+- <strong>I want</strong> an Alerts / Messages screen listing absence and test-related notifications<br />
+- <strong>So that</strong> I can review and act on issues.<br />
+- <strong>Dependencies</strong>: Task 5.2, 6.1.<br />
+- <strong>Risks</strong>: None.</p>
+<p><strong>Checklist</strong>:
+- [ ] Implement Alerts / Messages screen per UX with list of notifications, filters and read/unread state.
+- [ ] Wire to notifications APIs; handle empty/error/offline states.</p>
+<p><strong>Estimate</strong>: 1 SP</p>
+<hr />
+<p><strong>Sprint 7 total</strong>: 8 SP</p>
+<hr />
+<h2>Sprint 8 — Hardening, Observability &amp; AI Guardrails</h2>
+<p><strong>Capacity</strong>: 10 SP · Buffer 20% → 8 SP target</p>
+<hr />
+<h3>Task 8.1 — Teacher service observability (logs, metrics, tracing)</h3>
+<p><strong>Labels</strong>: Type: Hardening | AI: Non-AI | Risk: Low | Area: DevOps / Teacher Backend</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> team<br />
+- <strong>I want</strong> logs, metrics and basic tracing for Teacher backend<br />
+- <strong>So that</strong> we can monitor performance and errors in production.<br />
+- <strong>Dependencies</strong>: Task 1.2.<br />
+- <strong>Risks</strong>: None.</p>
+<p><strong>Checklist</strong>:
+- [x] Integrate Teacher backend with platform logging/monitoring stack (e.g. structured logs, metrics endpoints).
+- [x] Add health checks and readiness probes for Teacher backend and gateway routes.</p>
+<p><strong>Estimate</strong>: 2 SP | <strong>Status</strong>: Done</p>
+<hr />
+<h3>Task 8.2 — AI governance &amp; guardrails (teacher domain)</h3>
+<p><strong>Labels</strong>: Type: Hardening | AI: AI | Risk: Medium | Area: Teacher Backend — AI Governance</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> platform owner<br />
+- <strong>I want</strong> guardrails, rate limits and logging for Teacher AI usage<br />
+- <strong>So that</strong> AI behaviour (syllabus ingestion, question generation, solutions) is auditable and aligned with policy.<br />
+- <strong>Dependencies</strong>: Task 3.2, 4.2, 4.3.<br />
+- <strong>Risks</strong>: AI drift if not monitored.</p>
+<p><strong>Checklist</strong>:
+- [x] Implement AI call logging (without PII) for Teacher AI endpoints.
+- [x] Implement per-teacher and global rate limits for AI-intensive operations.
+- [x] Add validation to ensure prompts respect “no numericals” for online quizzes and syllabus alignment.</p>
+<p><strong>Estimate</strong>: 3 SP</p>
+<hr />
+<h3>Task 8.3 — Performance and load validation for Teacher flows</h3>
+<p><strong>Labels</strong>: Type: Hardening | AI: Non-AI | Risk: Low | Area: Performance</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> team<br />
+- <strong>I want</strong> to validate performance under realistic load for attendance, syllabus and tests<br />
+- <strong>So that</strong> Teacher experience remains fast during school peaks.<br />
+- <strong>Dependencies</strong>: Sprints 2–7.<br />
+- <strong>Risks</strong>: None.</p>
+<p><strong>Checklist</strong>:
+- [x] Identify critical flows (attendance save, syllabus list, test generation triggers, analytics dashboards).
+- [x] Run load tests and capture latency and error rates; add performance budgets.</p>
+<p><strong>Estimate</strong>: 2 SP | <strong>Status</strong>: Done</p>
+<hr />
+<h3>Task 8.4 — Cross-app integration validation (Student/Parent/Admin)</h3>
+<p><strong>Labels</strong>: Type: Hardening | AI: Non-AI | Risk: Medium | Area: Integration</p>
+<p><strong>Notes</strong>:
+- <strong>As a</strong> platform<br />
+- <strong>I want</strong> to verify that Teacher APIs support Student, Parent and Admin use cases<br />
+- <strong>So that</strong> the ecosystem behaves consistently end-to-end.<br />
+- <strong>Dependencies</strong>: Task 5.3, Student/Parent/Admin app availability.<br />
+- <strong>Risks</strong>: Cross-app regressions.</p>
+<p><strong>Checklist</strong>:
+- [x] Validate Student/Parent attendance and result views against Teacher aggregates.
+- [x] Validate Admin dashboards that rely on Teacher data.</p>
+<p><strong>Estimate</strong>: 1 SP | <strong>Status</strong>: Done</p>
+<hr />
+<p><strong>Sprint 8 total</strong>: 8 SP</p>
+<hr />
+<h2>Risk Register (Planner — Teacher App)</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Risk</th>
+<th>Mitigation</th>
+<th>Owner</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TR1</td>
+<td>AI hallucination in syllabus concepts / questions</td>
+<td>Strict prompts, post-validation, syllabus alignment checks</td>
+<td>Teacher Backend + AI Governance</td>
+</tr>
+<tr>
+<td>TR2</td>
+<td>Numericals leaking into online quizzes</td>
+<td>Prompt and validation rules; negative tests; UI toggle enforced server-side</td>
+<td>Teacher Backend</td>
+</tr>
+<tr>
+<td>TR3</td>
+<td>Attendance aggregation correctness</td>
+<td>Clear definitions and tests for weekly/monthly aggregates</td>
+<td>Teacher Backend</td>
+</tr>
+<tr>
+<td>TR4</td>
+<td>Cross-app data drift (Teacher vs Student/Parent)</td>
+<td>Shared contracts in <code>@mindforge/shared</code>; cross-app tests</td>
+<td>Backend + Gateway</td>
+</tr>
+<tr>
+<td>TR5</td>
+<td>AI latency during school peaks</td>
+<td>Background workers, pre-generation where possible, user feedback states</td>
+<td>Teacher Backend + Frontend</td>
+</tr>
+<tr>
+<td>TR6</td>
+<td>Notification noise / fatigue</td>
+<td>Thresholds and de-duplication in notifications engine</td>
+<td>Teacher Backend</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Forecast Summary (Teacher App)</h2>
+<table>
+<thead>
+<tr>
+<th>Sprint</th>
+<th>Focus</th>
+<th>SP</th>
+<th>Confidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Workspace integration &amp; Teacher service foundation</td>
+<td>8</td>
+<td>95%</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Class &amp; Attendance backend</td>
+<td>8</td>
+<td>95%</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Syllabus upload &amp; AI ingestion</td>
+<td>8</td>
+<td>80% (AI)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Test authoring, generation &amp; evaluation</td>
+<td>10</td>
+<td>75% (AI)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Analytics, notifications &amp; cross-app APIs</td>
+<td>8</td>
+<td>90%</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Teacher frontend — Dashboard &amp; Classes</td>
+<td>8</td>
+<td>90%</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Teacher frontend — Syllabus, Tests, Analytics, Alerts</td>
+<td>8</td>
+<td>85%</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Hardening, observability &amp; AI guardrails</td>
+<td>8</td>
+<td>90%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total</strong>: ~66 SP over 8 sprints. <strong>No scope expansion</strong>; all items trace to Teacher Architecture + UX + Workspace docs only.</p>
+<hr />
+<h2>STANDARD HANDOFF – To Dev Agent (Teacher App)</h2>
+<pre><code>============================================
+HANDOFF: Planner / Scrum Master AI Agent → Dev Agent (Teacher App)
+============================================
+
+PROJECT: Mindforge Teacher App
+
+ARTIFACT SOURCE: docs/architecture/teacher/Mindforge_Teacher_App_Architecture_v1.md
+PLANNING SOURCE: docs/planning/Mindforge_Teacher_App_Planner_Backlog.md
+
+PLANNING STATUS: Backlog and sprints defined for Teacher app; no architecture or UX changes.
+
+WHAT THE DEV RECEIVES:
+- Plan: Mindforge Teacher App — Release 1
+- Buckets: Sprints 1–8 (Workspace &amp; Teacher service foundation → Class &amp; Attendance backend → Syllabus upload &amp; AI ingestion → Test authoring/generation/evaluation → Analytics &amp; notifications → Teacher frontend Dashboard &amp; Classes → Teacher frontend Syllabus/Tests/Analytics/Alerts → Hardening &amp; AI guardrails)
+- Tasks: Each task has Title, User story (As/I want/So that), Acceptance criteria (Checklist), Dependencies, Risks, Labels (Type | AI/Non-AI | Risk | Area)
+- Notes: Full details in each task's Notes block
+- Capacity: 1 engineer = 8–10 SP/sprint; 20% buffer; AI work treated as probabilistic (forecast confidence per sprint)
+- Risk register: TR1–TR6 with mitigations and owner area
+
+CONSTRAINTS (DO NOT BREAK):
+- Teacher Architecture v1 is locked (docs/architecture/teacher/Mindforge_Teacher_App_Architecture_v1.md).
+- Teacher UX Spec v1 is locked (docs/architecture/teacher/Mindforge_Teacher_App_UX_Design_Specification.md). No screen, flow, or feature changes.
+- Workspace architecture is locked (docs/architecture/workspace-architecture.md). Apps remain decoupled; traffic via gateway; shared types in @mindforge/shared.
+- No scope expansion; only implement approved design.
+
+DEV NEXT STEPS:
+1. Implement in sprint order (Sprint 1 → 2 → … → 8) or as directed by PM; respect dependencies in task Notes.
+2. Use Checklist per task as acceptance criteria; satisfy all items before marking done.
+3. Surface AI uncertainty (timeouts, fallbacks, alignment checks) in logs and UX states where applicable.
+4. Run tests and migrations per CI/CD; adhere to workspace coding standards and security (auth, RBAC, secrets).
+
+BLOCKERS: None.
+
+DEPENDENCIES:
+- Reads: docs/architecture/teacher/Mindforge_Teacher_App_Architecture_v1.md
+- Reads: docs/architecture/teacher/Mindforge_Teacher_App_UX_Design_Specification.md
+- Reads: docs/architecture/workspace-architecture.md
+
+============================================
+Signature: Planner / Scrum Master AI Agent – Mindforge Teacher App
+============================================
+</code></pre>
+</body>
+</html>

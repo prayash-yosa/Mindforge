@@ -13,6 +13,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { AttendanceRepository } from '../../database/repositories/attendance.repository';
 import { StudentRepository } from '../../database/repositories/student.repository';
 import { StudentNotFoundException } from '../../common/exceptions/domain.exceptions';
+import { TeacherSyncService } from './teacher-sync.service';
 
 /** Attendance summary shape */
 export interface AttendanceSummary {
@@ -44,10 +45,14 @@ export class AttendanceService {
   constructor(
     private readonly attendanceRepo: AttendanceRepository,
     private readonly studentRepo: StudentRepository,
+    private readonly teacherSync: TeacherSyncService,
   ) {}
 
   /**
    * Get attendance summary and calendar for a student.
+   *
+   * When TEACHER_SERVICE_URL is configured, fetches from Teacher backend first
+   * (using student.externalId as UID). Falls back to local data if Teacher unavailable.
    *
    * Architecture ref: §5.2 — "GET /student/attendance"
    * UX ref: Screen 5 — "Attendance summary and calendar for period"
@@ -60,6 +65,20 @@ export class AttendanceService {
     const student = await this.studentRepo.findById(studentId);
     if (!student) throw new StudentNotFoundException();
 
+    // Try Teacher sync first when configured
+    if (this.teacherSync.isEnabled() && student.externalId) {
+      const teacherData = await this.teacherSync.fetchAttendance(
+        student.externalId,
+        startDate,
+        endDate,
+      );
+      if (teacherData) {
+        this.logger.debug(`Attendance from Teacher for student ${student.externalId}`);
+        return teacherData;
+      }
+    }
+
+    // Fallback: local attendance
     // Get raw attendance records
     const records = await this.attendanceRepo.findByStudentAndDateRange(
       studentId,

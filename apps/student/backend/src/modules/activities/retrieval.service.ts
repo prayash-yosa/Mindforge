@@ -125,7 +125,7 @@ export class RetrievalService {
         return null;
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as { data?: Array<{ embedding?: number[] }> };
       return data?.data?.[0]?.embedding ?? null;
     } catch (err: any) {
       this.logger.error(`Embedding query failed: ${err.message}`);

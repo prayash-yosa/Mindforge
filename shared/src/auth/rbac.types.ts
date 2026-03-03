@@ -19,6 +19,6 @@ export interface RouteRbacRule {
 export const DEFAULT_ROUTE_RBAC: RouteRbacRule[] = [
   { pathPrefix: '/api/student', allowedRoles: [UserRole.STUDENT] },
   { pathPrefix: '/api/parent', allowedRoles: [UserRole.PARENT] },
-  { pathPrefix: '/api/teacher', allowedRoles: [UserRole.TEACHER] },
+  { pathPrefix: '/api/teacher', allowedRoles: [UserRole.TEACHER, UserRole.ADMIN] },
   { pathPrefix: '/api/admin', allowedRoles: [UserRole.ADMIN] },
 ];

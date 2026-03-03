@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Task 1.1 — Workspace &amp; Gateway Wiring</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #333; }
+    h1 { color: #1a1a1a; border-bottom: 2px solid #4a7c59; padding-bottom: 0.5rem; }
+    h2 { color: #4a7c59; margin-top: 2rem; }
+    h3 { color: #555; }
+    code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+    pre { background: #f4f4f4; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+    pre code { background: none; padding: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+    th { background: #4a7c59; color: white; }
+    ul { padding-left: 1.5rem; }
+    .meta { color: #666; font-size: 0.9em; }
+    .pass { color: #2e7d32; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Teacher Task 1.1 — Wire Teacher App into Workspace &amp; Gateway Routing</h1>
+  <p class="meta"><strong>Sprint</strong>: 1 — Workspace Integration &amp; Teacher Service Foundation | <strong>App</strong>: Teacher | <strong>Status</strong>: Done | <strong>Date</strong>: 2026-03-02 | <strong>SP</strong>: 2</p>
+
+  <h2>Summary</h2>
+  <p>Wired the Teacher frontend and backend into the Mindforge monorepo workspace and updated the API gateway RBAC rules to allow both <strong>Teacher</strong> and <strong>Admin</strong> roles to access teacher routes.</p>
+
+  <h2>Acceptance Criteria</h2>
+  <table>
+    <thead><tr><th>#</th><th>Criterion</th><th>Status</th><th>Implementation</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Teacher apps registered in workspace</td><td class="pass">Done</td><td>Root <code>package.json</code> glob <code>"apps/*/backend"</code> covers teacher</td></tr>
+      <tr><td>2</td><td>Teacher routes in gateway with RBAC</td><td class="pass">Done</td><td><code>proxy.controller.ts</code> maps <code>/api/teacher</code> → <code>:3003</code>; RBAC allows Teacher + Admin</td></tr>
+      <tr><td>3</td><td>JWT + RBAC verified for Teacher role</td><td class="pass">Done</td><td><code>DEFAULT_ROUTE_RBAC</code> includes <code>[TEACHER, ADMIN]</code></td></tr>
+      <tr><td>4</td><td>Local dev commands documented</td><td class="pass">Done</td><td>Standard workspace commands via npm/Turborepo</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Key Changes</h2>
+  <h3>Gateway RBAC Update</h3>
+  <p>File: <code>shared/src/auth/rbac.types.ts</code></p>
+  <pre><code>Before: { pathPrefix: '/api/teacher', allowedRoles: [UserRole.TEACHER] }
+After:  { pathPrefix: '/api/teacher', allowedRoles: [UserRole.TEACHER, UserRole.ADMIN] }</code></pre>
+
+  <h3>Port Allocation</h3>
+  <table>
+    <thead><tr><th>Service</th><th>Port</th></tr></thead>
+    <tbody>
+      <tr><td>Gateway</td><td>3000</td></tr>
+      <tr><td>Student Backend</td><td>3001</td></tr>
+      <tr><td>Parent Backend</td><td>3002</td></tr>
+      <tr><td><strong>Teacher Backend</strong></td><td><strong>3003</strong></td></tr>
+      <tr><td>Admin Backend</td><td>3004</td></tr>
+      <tr><td>Teacher Frontend</td><td>5175</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Verification</h2>
+  <table>
+    <thead><tr><th>Test</th><th>Expected</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>Teacher backend in workspaces</td><td>Listed as <code>@mindforge/teacher-backend</code></td><td class="pass">Pass</td></tr>
+      <tr><td>Gateway SERVICE_MAP includes teacher</td><td><code>/api/teacher</code> → <code>http://localhost:3003</code></td><td class="pass">Pass</td></tr>
+      <tr><td>RBAC allows Teacher role</td><td>Teacher can access <code>/api/teacher/*</code></td><td class="pass">Pass</td></tr>
+      <tr><td>RBAC allows Admin role</td><td>Admin can access <code>/api/teacher/*</code></td><td class="pass">Pass</td></tr>
+      <tr><td>RBAC blocks Student role</td><td>Student gets 403</td><td class="pass">Pass</td></tr>
+    </tbody>
+  </table>
+</body>
+</html>

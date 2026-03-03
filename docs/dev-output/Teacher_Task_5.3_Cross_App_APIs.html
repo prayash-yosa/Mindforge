@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Task 5.3 — Cross-App APIs</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #333; }
+    h1 { color: #1a1a1a; border-bottom: 2px solid #4a7c59; padding-bottom: 0.5rem; }
+    h2 { color: #4a7c59; margin-top: 2rem; }
+    h3 { color: #555; }
+    code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+    pre { background: #f4f4f4; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+    pre code { background: none; padding: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+    th { background: #4a7c59; color: white; }
+    .meta { color: #666; font-size: 0.9em; }
+    .pass { color: #2e7d32; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Teacher Task 5.3 — Cross-App APIs</h1>
+  <p class="meta"><strong>Sprint</strong>: 5 | <strong>App</strong>: Teacher | <strong>Status</strong>: Done | <strong>Date</strong>: 2026-03-02 | <strong>SP</strong>: 2</p>
+
+  <h2>Summary</h2>
+  <p>Read-only cross-app endpoints for Student/Parent/Admin. Attendance summaries, performance KPIs, student test results. RBAC at gateway.</p>
+
+  <h2>Acceptance Criteria</h2>
+  <table>
+    <thead><tr><th>#</th><th>Criterion</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Read-only endpoints for attendance and performance aggregates</td><td class="pass">Done</td></tr>
+      <tr><td>2</td><td>Uses @mindforge/shared contracts; RBAC at gateway</td><td class="pass">Done</td></tr>
+    </tbody>
+  </table>
+
+  <h2>API Endpoints (4)</h2>
+  <table>
+    <thead><tr><th>Method</th><th>Path</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>GET</td><td><code>/v1/cross-app/attendance/summary/:classId</code></td><td>Attendance summary for a class</td></tr>
+      <tr><td>GET</td><td><code>/v1/cross-app/attendance/student/:studentId/class/:classId</code></td><td>Individual student attendance</td></tr>
+      <tr><td>GET</td><td><code>/v1/cross-app/performance/:classId</code></td><td>Class performance KPIs + score trends</td></tr>
+      <tr><td>GET</td><td><code>/v1/cross-app/performance/student/:studentId/test/:testId</code></td><td>Student's test result (online + offline)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Cross-App Consumers</h2>
+  <table>
+    <thead><tr><th>Consumer</th><th>Endpoints Used</th><th>Scope</th></tr></thead>
+    <tbody>
+      <tr><td>Student App</td><td>attendance/student, performance/student</td><td>Own data only</td></tr>
+      <tr><td>Parent App</td><td>attendance/student, performance/student</td><td>Child's data</td></tr>
+      <tr><td>Admin App</td><td>attendance/summary, performance</td><td>Full class data</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Verification</h2>
+  <table>
+    <thead><tr><th>Test</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td><code>npx nest build</code> — zero errors</td><td class="pass">Pass</td></tr>
+      <tr><td>All 4 cross-app routes mapped</td><td class="pass">Pass</td></tr>
+      <tr><td>Gateway RBAC enforces role-based access to /api/teacher</td><td class="pass">Pass</td></tr>
+      <tr><td>No direct DB sharing; all access via REST APIs</td><td class="pass">Pass</td></tr>
+    </tbody>
+  </table>
+</body>
+</html>

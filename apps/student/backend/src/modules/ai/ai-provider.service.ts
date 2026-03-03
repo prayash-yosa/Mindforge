@@ -110,7 +110,11 @@ export class AiProviderService {
         return this.buildFallbackResult(fallback, `http_${response.status}`);
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as {
+        choices?: Array<{ message?: { content?: string } }>;
+        usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
+        model?: string;
+      };
       const content = this.extractContent(data);
 
       if (!content) {

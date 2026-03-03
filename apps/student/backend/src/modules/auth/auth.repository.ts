@@ -62,18 +62,18 @@ export class AuthRepository implements OnModuleInit {
    * In production, students are provisioned externally.
    */
   async onModuleInit(): Promise<void> {
-    // Check if test student already exists
-    const existing = await this.studentRepo.findByExternalId('STU-001');
+    // Check if test student already exists (UID 12131 = Teacher sync with Aarav)
+    const existing = await this.studentRepo.findByExternalId('12131');
     if (existing) {
       this.logger.log(`Test student already seeded: ${existing.displayName} (ID: ${existing.id})`);
       return;
     }
 
-    // Seed test student
+    // Seed test student — externalId 12131 matches Teacher class_student for sync
     const testMpinHash = await bcrypt.hash('123456', 10);
     const student = await this.studentRepo.create({
-      externalId: 'STU-001',
-      displayName: 'Aarav',
+      externalId: '12131',
+      displayName: 'Aarav Kumar',
       class: '8',
       board: 'CBSE',
       school: 'Demo School',

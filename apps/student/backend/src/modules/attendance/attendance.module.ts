@@ -8,10 +8,11 @@
 import { Module } from '@nestjs/common';
 import { AttendanceController } from './attendance.controller';
 import { AttendanceService } from './attendance.service';
+import { TeacherSyncService } from './teacher-sync.service';
 
 @Module({
   controllers: [AttendanceController],
-  providers: [AttendanceService],
+  providers: [AttendanceService, TeacherSyncService],
   exports: [AttendanceService],
 })
 export class AttendanceModule {}

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Task 5.2 — Notifications Pipeline</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #333; }
+    h1 { color: #1a1a1a; border-bottom: 2px solid #4a7c59; padding-bottom: 0.5rem; }
+    h2 { color: #4a7c59; margin-top: 2rem; }
+    h3 { color: #555; }
+    code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+    pre { background: #f4f4f4; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+    pre code { background: none; padding: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+    th { background: #4a7c59; color: white; }
+    .meta { color: #666; font-size: 0.9em; }
+    .pass { color: #2e7d32; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Teacher Task 5.2 — Notifications Pipeline</h1>
+  <p class="meta"><strong>Sprint</strong>: 5 | <strong>App</strong>: Teacher | <strong>Status</strong>: Done | <strong>Date</strong>: 2026-03-02 | <strong>SP</strong>: 3</p>
+
+  <h2>Summary</h2>
+  <p>Teacher-facing notifications: absence alerts, test alerts (auto-submit, eval pending), read/mark-read API, unread count.</p>
+
+  <h2>Acceptance Criteria</h2>
+  <table>
+    <thead><tr><th>#</th><th>Criterion</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Absence &gt;2 days/week alerts surfaced as notification_event</td><td class="pass">Done</td></tr>
+      <tr><td>2</td><td>Test-related alerts: missed deadlines, auto-submitted, evaluation pending</td><td class="pass">Done</td></tr>
+      <tr><td>3</td><td>List and detail APIs for Alerts / Messages screen</td><td class="pass">Done</td></tr>
+    </tbody>
+  </table>
+
+  <h2>API Endpoints (5)</h2>
+  <table>
+    <thead><tr><th>Method</th><th>Path</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>GET</td><td><code>/v1/notifications</code></td><td>List teacher's notifications (optional ?unreadOnly=true)</td></tr>
+      <tr><td>GET</td><td><code>/v1/notifications/unread-count</code></td><td>Get unread notification count</td></tr>
+      <tr><td>POST</td><td><code>/v1/notifications/:id/read</code></td><td>Mark single notification as read</td></tr>
+      <tr><td>POST</td><td><code>/v1/notifications/read-all</code></td><td>Mark all teacher's notifications as read</td></tr>
+      <tr><td>POST</td><td><code>/v1/notifications/alerts/test/:testId</code></td><td>Generate test-related alerts</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Notification Categories</h2>
+  <table>
+    <thead><tr><th>Category</th><th>Trigger</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr><td>absence_alert</td><td>Student absent &gt;2 days/week</td><td>high</td></tr>
+      <tr><td>auto_submitted</td><td>Test auto-submitted on time expiry</td><td>medium</td></tr>
+      <tr><td>evaluation_pending</td><td>Submissions awaiting evaluation</td><td>high</td></tr>
+      <tr><td>missed_test</td><td>Student missed test deadline</td><td>medium</td></tr>
+      <tr><td>general</td><td>System notifications</td><td>low</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Verification</h2>
+  <table>
+    <thead><tr><th>Test</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td><code>npx nest build</code> — zero errors</td><td class="pass">Pass</td></tr>
+      <tr><td>All 5 notification routes mapped</td><td class="pass">Pass</td></tr>
+      <tr><td>All notification types surfaced with priority</td><td class="pass">Pass</td></tr>
+      <tr><td>Mark single/all as read with unread count</td><td class="pass">Pass</td></tr>
+    </tbody>
+  </table>
+</body>
+</html>

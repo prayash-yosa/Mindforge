@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Task 1.4 — Shared Contracts</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #333; }
+    h1 { color: #1a1a1a; border-bottom: 2px solid #4a7c59; padding-bottom: 0.5rem; }
+    h2 { color: #4a7c59; margin-top: 2rem; }
+    h3 { color: #555; }
+    code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+    pre { background: #f4f4f4; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+    pre code { background: none; padding: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+    th { background: #4a7c59; color: white; }
+    ul { padding-left: 1.5rem; }
+    .meta { color: #666; font-size: 0.9em; }
+    .pass { color: #2e7d32; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Teacher Task 1.4 — Shared Contracts for Teacher APIs</h1>
+  <p class="meta"><strong>Sprint</strong>: 1 — Workspace Integration &amp; Teacher Service Foundation | <strong>App</strong>: Teacher | <strong>Status</strong>: Done | <strong>Date</strong>: 2026-03-02 | <strong>SP</strong>: 1</p>
+
+  <h2>Summary</h2>
+  <p>Added Teacher-specific DTOs, interfaces, and enums to <code>@mindforge/shared</code> so that Student, Parent, Admin, and Gateway can consume Teacher API contracts without tight coupling or cross-service imports.</p>
+
+  <h2>Acceptance Criteria</h2>
+  <table>
+    <thead><tr><th>#</th><th>Criterion</th><th>Status</th><th>Implementation</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Teacher DTOs/interfaces in <code>shared/src/interfaces/teacher</code></td><td class="pass">Done</td><td>14 interfaces + 8 enums</td></tr>
+      <tr><td>2</td><td>Teacher-related auth roles in shared</td><td class="pass">Done</td><td><code>UserRole.TEACHER</code> exists; RBAC updated for Admin access</td></tr>
+      <tr><td>3</td><td>Both frontend and backend consume shared types</td><td class="pass">Done</td><td><code>@mindforge/shared</code> imported in teacher backend</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Enums (8)</h2>
+  <table>
+    <thead><tr><th>Enum</th><th>Values</th><th>Used For</th></tr></thead>
+    <tbody>
+      <tr><td>AttendanceStatus</td><td>present, absent</td><td>Attendance records</td></tr>
+      <tr><td>TestMode</td><td>online, offline</td><td>Test classification</td></tr>
+      <tr><td>TestStatus</td><td>draft, published, closed</td><td>Test lifecycle</td></tr>
+      <tr><td>QuestionType</td><td>mcq, fill_in_blank, true_false, very_short, short, long, numerical</td><td>Question types</td></tr>
+      <tr><td>AttemptStatus</td><td>in_progress, submitted, auto_submitted, evaluated</td><td>Test attempt lifecycle</td></tr>
+      <tr><td>DocumentProcessingStatus</td><td>pending, processing, ready, failed</td><td>Syllabus pipeline</td></tr>
+      <tr><td>NotificationCategory</td><td>absence_alert, missed_test, auto_submitted, evaluation_pending, general</td><td>Alert types</td></tr>
+      <tr><td>NotificationPriority</td><td>low, medium, high</td><td>Alert priority</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Interfaces (14)</h2>
+  <table>
+    <thead><tr><th>Interface</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>TeacherProfile</td><td>Teacher identity and metadata</td></tr>
+      <tr><td>ClassInfo</td><td>Grade/section/subject/teacher mapping</td></tr>
+      <tr><td>ClassSessionInfo</td><td>1-hour class session with editable_until</td></tr>
+      <tr><td>ClassStudentMapping</td><td>Student enrollment in a class</td></tr>
+      <tr><td>AttendanceRecordDto</td><td>Single attendance record</td></tr>
+      <tr><td>AttendanceSummaryDto</td><td>Aggregated attendance (daily/weekly/monthly)</td></tr>
+      <tr><td>SyllabusDocumentDto</td><td>Uploaded file metadata and status</td></tr>
+      <tr><td>LessonSessionDto</td><td>AI-extracted concepts, objectives, numericals flag</td></tr>
+      <tr><td>TestDefinitionDto</td><td>Test configuration (online/offline)</td></tr>
+      <tr><td>TestQuestionDto</td><td>Question with options, answer, explanation</td></tr>
+      <tr><td>TestAttemptDto</td><td>Student test submission and scores</td></tr>
+      <tr><td>OfflineMarkEntryDto</td><td>Teacher-entered marks for offline tests</td></tr>
+      <tr><td>NotificationEventDto</td><td>Alert with category, priority, read state</td></tr>
+      <tr><td>TeacherDashboardKpis</td><td>Dashboard KPI aggregation</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Cross-App Usage</h2>
+  <table>
+    <thead><tr><th>Consumer</th><th>Usage</th></tr></thead>
+    <tbody>
+      <tr><td>Teacher Backend</td><td>Entities align with interfaces; imports shared types</td></tr>
+      <tr><td>Teacher Frontend</td><td>Will import DTOs for API response typing</td></tr>
+      <tr><td>Student Backend</td><td>Can import AttendanceSummaryDto, TestAttemptDto for cross-app reads</td></tr>
+      <tr><td>Gateway</td><td>Uses UserRole, RouteRbacRule for RBAC enforcement</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Verification</h2>
+  <table>
+    <thead><tr><th>Test</th><th>Expected</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td><code>npx tsc</code> in shared</td><td>Zero errors</td><td class="pass">Pass</td></tr>
+      <tr><td>Shared dist contains teacher types</td><td>Compiled JS + <code>.d.ts</code> present</td><td class="pass">Pass</td></tr>
+      <tr><td>Teacher backend imports shared</td><td>No resolution errors</td><td class="pass">Pass</td></tr>
+      <tr><td>Workspace build</td><td>All workspaces build</td><td class="pass">Pass</td></tr>
+    </tbody>
+  </table>
+</body>
+</html>

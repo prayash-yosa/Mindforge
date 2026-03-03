@@ -19,9 +19,11 @@ export interface ApiError {
 }
 
 class ApiClientError extends Error {
-  constructor(public readonly error: ApiError) {
+  readonly error: ApiError;
+  constructor(error: ApiError) {
     super(error.message);
     this.name = 'ApiClientError';
+    this.error = error;
   }
 }
 

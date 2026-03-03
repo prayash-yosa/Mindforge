@@ -1,0 +1,12 @@
+export { TeacherEntity } from './teacher.entity';
+export { ClassEntity } from './class.entity';
+export { ClassSessionEntity } from './class-session.entity';
+export { ClassStudentEntity } from './class-student.entity';
+export { AttendanceRecordEntity } from './attendance-record.entity';
+export { SyllabusDocumentEntity } from './syllabus-document.entity';
+export { LessonSessionEntity } from './lesson-session.entity';
+export { TestDefinitionEntity } from './test-definition.entity';
+export { TestQuestionEntity } from './test-question.entity';
+export { TestAttemptEntity } from './test-attempt.entity';
+export { OfflineMarkEntryEntity } from './offline-mark-entry.entity';
+export { NotificationEventEntity } from './notification-event.entity';

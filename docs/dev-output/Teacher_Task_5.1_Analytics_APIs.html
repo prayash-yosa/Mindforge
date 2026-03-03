@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Task 5.1 — Analytics APIs</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #333; }
+    h1 { color: #1a1a1a; border-bottom: 2px solid #4a7c59; padding-bottom: 0.5rem; }
+    h2 { color: #4a7c59; margin-top: 2rem; }
+    h3 { color: #555; }
+    code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+    pre { background: #f4f4f4; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+    pre code { background: none; padding: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+    th { background: #4a7c59; color: white; }
+    .meta { color: #666; font-size: 0.9em; }
+    .pass { color: #2e7d32; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Teacher Task 5.1 — Analytics APIs</h1>
+  <p class="meta"><strong>Sprint</strong>: 5 — Analytics &amp; Notifications | <strong>App</strong>: Teacher | <strong>Status</strong>: Done | <strong>Date</strong>: 2026-03-02 | <strong>SP</strong>: 3</p>
+
+  <h2>Summary</h2>
+  <p>Class KPIs (avg score, attendance %, at-risk students), score trends, attendance trends by week. At-risk = &lt;75% attendance or &lt;40% average.</p>
+
+  <h2>Acceptance Criteria</h2>
+  <table>
+    <thead><tr><th>#</th><th>Criterion</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>KPI APIs: average score, attendance %, at-risk students, tests this week</td><td class="pass">Done</td></tr>
+      <tr><td>2</td><td>Trend endpoints: score over time, attendance by week</td><td class="pass">Done</td></tr>
+      <tr><td>3</td><td>Optimised via indexes</td><td class="pass">Done</td></tr>
+    </tbody>
+  </table>
+
+  <h2>API Endpoints (3)</h2>
+  <table>
+    <thead><tr><th>Method</th><th>Path</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>GET</td><td><code>/v1/analytics/kpis/:classId</code></td><td>Class KPIs (avg score, attendance %, at-risk, tests this week)</td></tr>
+      <tr><td>GET</td><td><code>/v1/analytics/scores/:classId</code></td><td>Score trends over time</td></tr>
+      <tr><td>GET</td><td><code>/v1/analytics/attendance/:classId?weeks=</code></td><td>Attendance trends by week (default 8 weeks)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Response Shapes</h2>
+
+  <h3>ClassKpis</h3>
+  <table>
+    <thead><tr><th>Field</th><th>Type</th></tr></thead>
+    <tbody>
+      <tr><td>classId</td><td>string</td></tr>
+      <tr><td>subject</td><td>string</td></tr>
+      <tr><td>averageScore</td><td>number</td></tr>
+      <tr><td>attendancePercentage</td><td>number</td></tr>
+      <tr><td>totalStudents</td><td>number</td></tr>
+      <tr><td>totalTests</td><td>number</td></tr>
+      <tr><td>testsThisWeek</td><td>number</td></tr>
+      <tr><td>atRiskStudents</td><td>AtRiskStudent[]</td></tr>
+    </tbody>
+  </table>
+
+  <h3>ScoreTrend</h3>
+  <table>
+    <thead><tr><th>Field</th><th>Type</th></tr></thead>
+    <tbody>
+      <tr><td>testId</td><td>string</td></tr>
+      <tr><td>testTitle</td><td>string</td></tr>
+      <tr><td>date</td><td>ISO date</td></tr>
+      <tr><td>classAverage</td><td>number</td></tr>
+      <tr><td>highestScore</td><td>number</td></tr>
+      <tr><td>lowestScore</td><td>number</td></tr>
+      <tr><td>totalStudents</td><td>number</td></tr>
+    </tbody>
+  </table>
+
+  <h3>AttendanceTrend</h3>
+  <table>
+    <thead><tr><th>Field</th><th>Type</th></tr></thead>
+    <tbody>
+      <tr><td>week</td><td>ISO date</td></tr>
+      <tr><td>presentPercentage</td><td>number</td></tr>
+      <tr><td>totalSessions</td><td>number</td></tr>
+      <tr><td>totalStudents</td><td>number</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Verification</h2>
+  <table>
+    <thead><tr><th>Test</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td><code>npx nest build</code> — zero errors</td><td class="pass">Pass</td></tr>
+      <tr><td>All 3 analytics routes mapped</td><td class="pass">Pass</td></tr>
+      <tr><td>At-risk detection: &lt;75% attendance or &lt;40% average flagged</td><td class="pass">Pass</td></tr>
+    </tbody>
+  </table>
+</body>
+</html>

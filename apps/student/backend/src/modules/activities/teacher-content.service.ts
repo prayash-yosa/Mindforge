@@ -270,7 +270,7 @@ export class TeacherContentService {
           continue;
         }
 
-        const data = await response.json();
+        const data = (await response.json()) as { data?: Array<{ embedding?: number[] }> };
         for (const item of data.data ?? []) {
           results.push(item.embedding ?? null);
         }

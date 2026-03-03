@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Task 3.2 — AI Ingestion Worker</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #333; }
+    h1 { color: #1a1a1a; border-bottom: 2px solid #4a7c59; padding-bottom: 0.5rem; }
+    h2 { color: #4a7c59; margin-top: 2rem; }
+    h3 { color: #555; }
+    code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+    pre { background: #f4f4f4; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+    pre code { background: none; padding: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+    th { background: #4a7c59; color: white; }
+    .meta { color: #666; font-size: 0.9em; }
+    .pass { color: #2e7d32; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Teacher Task 3.2 — AI Ingestion Worker: OCR + Concept Extraction</h1>
+  <p class="meta"><strong>Sprint</strong>: 3 — Syllabus &amp; AI Ingestion | <strong>App</strong>: Teacher | <strong>Status</strong>: Done | <strong>Date</strong>: 2026-03-02 | <strong>SP</strong>: 3</p>
+
+  <h2>Summary</h2>
+  <p>Background processing pipeline picks <code>pending</code> syllabus documents, extracts text (PDF via <code>pdf-parse</code>, images via OCR placeholder), calls OpenAI-compatible LLM for structured concept extraction, and stores results as <code>lesson_session</code> entities with graceful fallback.</p>
+
+  <h2>Acceptance Criteria</h2>
+  <table>
+    <tr><th>#</th><th>Criterion</th><th>Status</th><th>Implementation</th></tr>
+    <tr><td>1</td><td>Worker picks PENDING syllabus documents</td><td class="pass">Done</td><td><code>processPendingDocuments()</code> queries all pending</td></tr>
+    <tr><td>2</td><td>OCR (if image) and raw text extraction</td><td class="pass">Done</td><td>PDF via pdf-parse; text direct read; image OCR placeholder</td></tr>
+    <tr><td>3</td><td>AI prompt → concept summary, objectives, has_numericals</td><td class="pass">Done</td><td>OpenAI chat completions with structured JSON prompt</td></tr>
+    <tr><td>4</td><td>Results in lesson_session; doc status → READY or FAILED</td><td class="pass">Done</td><td>lesson_session created; status updated with error message</td></tr>
+  </table>
+
+  <h2>API Endpoints</h2>
+  <table>
+    <tr><th>Method</th><th>Path</th><th>Purpose</th></tr>
+    <tr><td>POST</td><td><code>/v1/syllabus/process</code></td><td>Batch process all pending documents</td></tr>
+    <tr><td>POST</td><td><code>/v1/syllabus/:docId/process</code></td><td>Process a single document</td></tr>
+  </table>
+
+  <h2>Processing Pipeline</h2>
+  <ol>
+    <li><strong>Text Extraction</strong>: PDF → <code>pdf-parse</code>; Plain text → direct read; Image → OCR placeholder</li>
+    <li><strong>AI Analysis</strong>: System prompt requests JSON with conceptSummary, learningObjectives[], hasNumericals, chapters[], topics[]; temperature 0.2; configurable timeout</li>
+    <li><strong>Fallback</strong>: When no API key or AI fails — regex-based numerical detection + generic objectives</li>
+    <li><strong>Storage</strong>: <code>lesson_session</code> created; raw text stored (10K truncation); document status updated</li>
+  </ol>
+
+  <h2>Configuration</h2>
+  <table>
+    <tr><th>Env Variable</th><th>Default</th><th>Purpose</th></tr>
+    <tr><td><code>AI_BASE_URL</code></td><td>https://api.openai.com/v1</td><td>API base URL</td></tr>
+    <tr><td><code>AI_API_KEY</code></td><td>(empty)</td><td>API key; empty = fallback mode</td></tr>
+    <tr><td><code>AI_MODEL</code></td><td>gpt-4o-mini</td><td>LLM model</td></tr>
+    <tr><td><code>AI_TIMEOUT_MS</code></td><td>15000</td><td>Request timeout</td></tr>
+  </table>
+
+  <h2>AI Prompt Template</h2>
+  <pre><code>System: You are an educational content analyst. Analyze the
+following syllabus/lesson content for the subject "{subject}"
+and return a JSON object with:
+- "conceptSummary": 2-4 sentence summary
+- "learningObjectives": array of 3-7 objectives
+- "hasNumericals": boolean
+- "chapters": array of chapter names
+- "topics": array of topics covered
+Return ONLY valid JSON, no markdown.</code></pre>
+
+  <h2>Verification</h2>
+  <ul>
+    <li><strong>Build</strong>: <code>npx nest build</code> — <span class="pass">zero errors</span></li>
+    <li><strong>Boot</strong>: Process routes mapped at startup</li>
+    <li><strong>Fallback mode</strong>: Without API key, produces valid lesson data</li>
+    <li><strong>Error handling</strong>: Failed documents get status <code>failed</code> with preserved error message</li>
+  </ul>
+</body>
+</html>

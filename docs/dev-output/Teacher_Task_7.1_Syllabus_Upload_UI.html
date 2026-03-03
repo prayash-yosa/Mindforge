@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Task 7.1 — Syllabus Upload UI</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #333; }
+    h1 { color: #1a1a1a; border-bottom: 2px solid #4a7c59; padding-bottom: 0.5rem; }
+    h2 { color: #4a7c59; margin-top: 2rem; }
+    code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+    pre { background: #f4f4f4; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+    pre code { background: none; padding: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+    th { background: #4a7c59; color: white; }
+    .meta { color: #666; font-size: 0.9em; }
+    .pass { color: #2e7d32; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Teacher Task 7.1 — Syllabus Upload UI</h1>
+  <p class="meta"><strong>Sprint</strong>: 7 | <strong>App</strong>: Teacher | <strong>SP</strong>: 2</p>
+
+  <h2>Summary</h2>
+  <p>Upload zone, status badges, lesson detail view.</p>
+
+  <h2>Acceptance Criteria</h2>
+  <table>
+    <thead><tr><th>#</th><th>Criterion</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Drag-and-drop upload zone; lesson list with status badges; tap lesson → detail view</td><td class="pass">Done</td></tr>
+      <tr><td>2</td><td>Uses syllabus/lesson APIs</td><td class="pass">Done</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Status Badges</h2>
+  <table>
+    <thead><tr><th>Badge</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>Pending</td><td>Uploaded, awaiting AI ingestion</td></tr>
+      <tr><td>Processing</td><td>AI ingestion in progress</td></tr>
+      <tr><td>Ready</td><td>Ingested and available</td></tr>
+      <tr><td>Failed</td><td>Ingestion failed</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Verification</h2>
+  <table>
+    <thead><tr><th>Test</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>Upload zone accepts PDF/PPT</td><td class="pass">Pass</td></tr>
+      <tr><td>Lesson list shows status badges</td><td class="pass">Pass</td></tr>
+      <tr><td>Lesson tap opens detail view</td><td class="pass">Pass</td></tr>
+    </tbody>
+  </table>
+</body>
+</html>

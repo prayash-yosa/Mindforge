@@ -51,6 +51,14 @@ export default () => ({
     temperature: parseFloat(process.env.AI_TEMPERATURE ?? '0.3'),
   },
 
+  /** Teacher app sync — when set, attendance is fetched from Teacher backend */
+  teacher: {
+    serviceUrl: process.env.TEACHER_SERVICE_URL ?? '',
+    classId: process.env.TEACHER_CLASS_ID ?? '',
+    timeoutMs: parseInt(process.env.TEACHER_SYNC_TIMEOUT_MS ?? '5000', 10),
+    retryCount: parseInt(process.env.TEACHER_SYNC_RETRY_COUNT ?? '1', 10),
+  },
+
   /** Database configuration (Task 2.1) */
   database: {
     url: process.env.DATABASE_URL,
